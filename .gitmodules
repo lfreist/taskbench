@@ -1,0 +1,12 @@
+[submodule "external/zstd"]
+	path = external/zstd
+	url = https://github.com/facebook/zstd.git
+[submodule "external/miss-ocl"]
+	path = external/miss-ocl
+	url = https://github.com/lfreist/miss-ocl.git
+[submodule "external/AES"]
+	path = external/AES
+	url = https://github.com/lfreist/AES.git
+[submodule "external/fmt"]
+	path = external/fmt
+	url = https://github.com/fmtlib/fmt.git

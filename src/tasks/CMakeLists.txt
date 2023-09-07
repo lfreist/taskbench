@@ -1,0 +1,5 @@
+add_subdirectory(cpu)
+add_subdirectory(disk)
+add_subdirectory(gpu)
+add_subdirectory(network)
+add_subdirectory(ram)
