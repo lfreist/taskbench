@@ -9,8 +9,6 @@
 
 #include <vector>
 
-#include <taskbench/utils/benchmark.h>
-
 namespace taskbench::cpu::aes {
 
 /**

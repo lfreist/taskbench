@@ -7,11 +7,11 @@
 
 #pragma once
 
+#include <taskbench/utils/concepts.h>
+
+#include <random>
 #include <type_traits>
 #include <vector>
-#include <random>
-
-#include <taskbench/utils/concepts.h>
 
 namespace taskbench::utils {
 
@@ -20,19 +20,20 @@ class DataGenerator {
   template <class T>
     requires IsInteger<T>
   static std::vector<T> vector(size_t size, int seed, T min = std::numeric_limits<T>::min(),
-                                       T max = std::numeric_limits<T>::max()) {
+                               T max = std::numeric_limits<T>::max()) {
     std::vector<T> result(size);
     std::mt19937 rng(seed);
-    std::uniform_int_distribution<T> dist(min, max);
+    std::uniform_int_distribution<int64_t> dist(static_cast<int64_t>(min), static_cast<int64_t>(max));
     for (auto& i : result) {
-      i = dist(rng);
+      i = static_cast<T>(dist(rng));
     }
     return result;
   }
 
   template <class T>
     requires IsFloatingPoint<T>
-  static std::vector<T> vector(size_t size, int seed, T min, T max) {
+  static std::vector<T> vector(size_t size, int seed, T min = std::numeric_limits<T>::min(),
+                               T max = std::numeric_limits<T>::max()) {
     std::vector<T> result(size);
     std::mt19937 rng(seed);
     std::uniform_real_distribution<T> dist(min, max);

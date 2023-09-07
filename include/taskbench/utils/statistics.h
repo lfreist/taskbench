@@ -7,11 +7,12 @@
 
 #pragma once
 
-#include <vector>
-#include <numeric>
-#include <cmath>
-
 #include <taskbench/utils/concepts.h>
+
+#include <chrono>
+#include <cmath>
+#include <numeric>
+#include <vector>
 
 namespace taskbench::utils {
 
@@ -37,27 +38,9 @@ double stdev(const std::vector<T>& data) {
 }
 
 template <>
-double mean(const std::vector<std::chrono::duration<double>>& data) {
-  if (data.empty()) {
-    return 0.0f;
-  }
-  return std::accumulate(data.begin(), data.end(), static_cast<std::chrono::duration<double>>(0)).count() / static_cast<double>(data.size());
-}
+double mean(const std::vector<std::chrono::duration<double>>& data);
 
 template <>
-double stdev(const std::vector<std::chrono::duration<double>>& data) {
-  if (data.empty()) {
-    return 0.0f;
-  }
-  double meanValue = mean(data);
+double stdev(const std::vector<std::chrono::duration<double>>& data);
 
-  double sumSquaredDifferences = 0.0;
-  for (const auto& value : data) {
-    double difference = value.count() - meanValue;
-    sumSquaredDifferences += difference * difference;
-  }
-  double meanSquaredDifferences = sumSquaredDifferences / static_cast<double>(data.size());
-  return std::sqrt(meanSquaredDifferences);
-}
-
-}
+}  // namespace taskbench::utils

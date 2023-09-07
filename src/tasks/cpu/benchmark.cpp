@@ -41,7 +41,7 @@ void Benchmark::run_aes(unsigned iterations) {
   }
 
   // encryption
-  for (int i = 0; i < iterations; ++i) {
+  for (unsigned i = 0; i < iterations; ++i) {
     timer.start();
     encrypted_data = aes::encrypt(plain_data, key);
     auto runtime = timer.stop();
@@ -50,7 +50,7 @@ void Benchmark::run_aes(unsigned iterations) {
     if (_verbosity != utils::VERBOSITY::OFF) {
       fmt::print("\r                                                             ");
       if (_benchmark_result.contains("AES encryption")) {
-        int index = i < iterations - 1 ? i + 2 : i + 1;
+        unsigned index = i < iterations - 1 ? i + 2 : i + 1;
         auto& results = _benchmark_result["AES encryption"];
         fmt::print(fg(fmt::color::azure), "\r  {:20} ", "encryption");
         fmt::print(fg(fmt::color::gray), "({}/{}): ", index, iterations);
@@ -66,7 +66,7 @@ void Benchmark::run_aes(unsigned iterations) {
   }
 
   // decryption
-  for (int i = 0; i < iterations; ++i) {
+  for (unsigned i = 0; i < iterations; ++i) {
     timer.start();
     plain_data = aes::decrypt(encrypted_data, key);
     auto runtime = timer.stop();
@@ -75,7 +75,7 @@ void Benchmark::run_aes(unsigned iterations) {
     if (_verbosity != utils::VERBOSITY::OFF) {
       fmt::print("\r                                                             ");
       if (_benchmark_result.contains("AES decryption")) {
-        int index = i < iterations - 1 ? i + 2 : i + 1;
+        unsigned index = i < iterations - 1 ? i + 2 : i + 1;
         auto& results = _benchmark_result["AES decryption"];
         fmt::print(fg(fmt::color::azure), "\r  {:20} ", "decryption");
         fmt::print(fg(fmt::color::gray), "({}/{}): ", index, iterations);
@@ -103,7 +103,7 @@ void Benchmark::run_compression(unsigned int iterations) {
   }
 
   // encryption
-  for (int i = 0; i < iterations; ++i) {
+  for (unsigned i = 0; i < iterations; ++i) {
     timer.start();
     compression::compress(plain_data, compressed_data);
     auto runtime = timer.stop();
@@ -113,7 +113,7 @@ void Benchmark::run_compression(unsigned int iterations) {
     if (_verbosity != utils::VERBOSITY::OFF) {
       fmt::print("\r                                                             ");
       if (_benchmark_result.contains("compression")) {
-        int index = i < iterations - 1 ? i + 2 : i + 1;
+        unsigned index = i < iterations - 1 ? i + 2 : i + 1;
         auto& results = _benchmark_result["compression"];
         fmt::print(fg(fmt::color::azure), "\r  {:20} ", "compression");
         fmt::print(fg(fmt::color::gray), "({}/{}): ", index, iterations);
@@ -129,7 +129,7 @@ void Benchmark::run_compression(unsigned int iterations) {
   }
 
   // decryption
-  for (int i = 0; i < iterations; ++i) {
+  for (unsigned i = 0; i < iterations; ++i) {
     timer.start();
     compression::decompress(compressed_data, plain_data);
     auto runtime = timer.stop();
@@ -138,7 +138,7 @@ void Benchmark::run_compression(unsigned int iterations) {
     if (_verbosity != utils::VERBOSITY::OFF) {
       fmt::print("\r                                                             ");
       if (_benchmark_result.contains("decompression")) {
-        int index = i < iterations - 1 ? i + 2 : i + 1;
+        unsigned index = i < iterations - 1 ? i + 2 : i + 1;
         auto& results = _benchmark_result["decompression"];
         fmt::print(fg(fmt::color::azure), "\r  {:20} ", "decompression");
         fmt::print(fg(fmt::color::gray), "({}/{}): ", index, iterations);
@@ -151,7 +151,67 @@ void Benchmark::run_compression(unsigned int iterations) {
 }
 
 // _____________________________________________________________________________________________________________________
-void Benchmark::run_fft(unsigned int iterations) {}
+void Benchmark::run_fft(unsigned int iterations) {
+  if (_verbosity != utils::VERBOSITY::OFF) {
+    fmt::print(fg(fmt::color::aqua) | fmt::emphasis::bold, "FFT Benchmarks:\n");
+  }
+  utils::Timer timer;
+
+  auto plain_data = utils::DataGenerator::vector<double>(0x100000, 42);
+  std::valarray<std::complex<double>> data(plain_data.size());
+  std::transform(plain_data.begin(), plain_data.end(), begin(data), [](auto v) { return v + 1; });
+
+  if (_verbosity != utils::VERBOSITY::OFF) {
+    fmt::print(fg(fmt::color::azure), "  {:20} ", "fft");
+    fmt::print(fg(fmt::color::gray), "(1/{})...", iterations);
+  }
+
+  // encryption
+  for (unsigned i = 0; i < iterations; ++i) {
+    timer.start();
+    fft::fft(data);
+    auto runtime = timer.stop();
+    _add_result("fft", runtime);
+
+    if (_verbosity != utils::VERBOSITY::OFF) {
+      fmt::print("\r                                                             ");
+      if (_benchmark_result.contains("fft")) {
+        unsigned index = i < iterations - 1 ? i + 2 : i + 1;
+        auto& results = _benchmark_result["fft"];
+        fmt::print(fg(fmt::color::azure), "\r  {:20} ", "fft");
+        fmt::print(fg(fmt::color::gray), "({}/{}): ", index, iterations);
+        fmt::print(fg(fmt::color::green), "({:.{}} +/- {:.{}}) s", utils::mean(results), 4, utils::stdev(results), 4);
+      }
+      std::cout << std::flush;
+    }
+  }
+
+  if (_verbosity != utils::VERBOSITY::OFF) {
+    fmt::print(fg(fmt::color::azure), "\n  {:20} ", "ifft");
+    fmt::print(fg(fmt::color::gray), "(1/{})...", iterations);
+  }
+
+  // decryption
+  for (unsigned i = 0; i < iterations; ++i) {
+    timer.start();
+    fft::ifft(data);
+    auto runtime = timer.stop();
+    _add_result("ifft", runtime);
+
+    if (_verbosity != utils::VERBOSITY::OFF) {
+      fmt::print("\r                                                             ");
+      if (_benchmark_result.contains("ifft")) {
+        unsigned index = i < iterations - 1 ? i + 2 : i + 1;
+        auto& results = _benchmark_result["ifft"];
+        fmt::print(fg(fmt::color::azure), "\r  {:20} ", "ifft");
+        fmt::print(fg(fmt::color::gray), "({}/{}): ", index, iterations);
+        fmt::print(fg(fmt::color::green), "({:.{}} +/- {:.{}}) s", utils::mean(results), 4, utils::stdev(results), 4);
+      }
+      std::cout << std::flush;
+    }
+  }
+  std::cout << std::endl;
+}
 
 // _____________________________________________________________________________________________________________________
 void Benchmark::run_mmul(unsigned int iterations) {}
