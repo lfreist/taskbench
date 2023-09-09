@@ -5,6 +5,10 @@
  * This file is part of taskbench.
  */
 
-#include <taskbench/tasks/cpu/mmul.h>
+#include <taskbench/tasks/ram/read_write.h>
 
-namespace taskbench::cpu::mmul {}
+namespace taskbench::ram::read_write {
+
+
+
+}

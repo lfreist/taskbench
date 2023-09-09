@@ -5,6 +5,6 @@
  * This file is part of taskbench.
  */
 
-#include <taskbench/tasks/cpu/mmul.h>
+#pragma once
 
-namespace taskbench::cpu::mmul {}
+namespace taskbench::ram::read_write {}

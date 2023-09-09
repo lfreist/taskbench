@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <fmt/core.h>
 #include <taskbench/utils/concepts.h>
 
 #include <chrono>

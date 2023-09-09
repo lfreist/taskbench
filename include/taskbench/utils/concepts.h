@@ -22,4 +22,12 @@ concept Is8BitInteger = std::is_same_v<T, char> && std::is_same_v<T, unsigned ch
 template <typename T>
 concept IsInteger = std::is_integral_v<T>;
 
+template <typename T>
+concept IsSortable = requires(T a, T b) {
+  { a < b } -> std::convertible_to<bool>;
+  { a > b } -> std::convertible_to<bool>;
+  { a <= b } -> std::convertible_to<bool>;
+  { a >= b } -> std::convertible_to<bool>;
+};
+
 }  // namespace taskbench::utils

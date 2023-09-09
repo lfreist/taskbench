@@ -15,6 +15,21 @@
 
 #include <taskbench/utils/timer.h>
 
+#define S_1_MiB 0x100000
+#define S_2_MiB 0x200000
+#define S_4_MiB 0x400000
+#define S_8_MiB 0x800000
+#define S_16_MiB 0x1000000
+#define S_32_MiB 0x2000000
+#define S_64_MiB 0x4000000
+#define S_128_MiB 0x8000000
+#define S_256_MiB 0x10000000
+#define S_512_MiB 0x20000000
+#define S_1_GiB 0x40000000
+#define S_2_GiB 0x80000000
+#define S_4_GiB 0x100000000
+#define S_8_GiB 0x200000000
+
 namespace taskbench::utils {
 
 typedef std::vector<std::chrono::duration<double>> BenchmarkResult;
