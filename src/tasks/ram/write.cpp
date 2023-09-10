@@ -6,3 +6,11 @@
  */
 
 #include <taskbench/tasks/ram/write.h>
+
+#include <cstring>
+
+namespace taskbench::ram::write {
+
+void sequential(int* buffer, size_t size, int value) { std::memset(buffer, value, size); }
+
+}  // namespace taskbench::ram::write

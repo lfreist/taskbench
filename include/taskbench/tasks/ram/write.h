@@ -6,3 +6,11 @@
  */
 
 #pragma once
+
+#include <cstddef>
+
+namespace taskbench::ram::write {
+
+void sequential(int* buffer, size_t size, int value);
+
+}  // namespace taskbench::ram::write

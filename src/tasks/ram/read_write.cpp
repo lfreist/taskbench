@@ -7,8 +7,10 @@
 
 #include <taskbench/tasks/ram/read_write.h>
 
+#include <cstring>
+
 namespace taskbench::ram::read_write {
 
+void sequential(const int* src, int* dst, size_t size) { std::memcpy(dst, src, size); }
 
-
-}
+}  // namespace taskbench::ram::read_write

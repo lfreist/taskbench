@@ -27,7 +27,7 @@ class DataGenerator {
  public:
   template <typename T>
     requires IsInteger<T>
-  static T integer(int seed, T min = std::numeric_limits<T>::min(), T max = std::numeric_limits<T>::max()) {
+  static T integer(unsigned seed, T min = std::numeric_limits<T>::min(), T max = std::numeric_limits<T>::max()) {
     std::mt19937 rng(seed);
     std::uniform_int_distribution<int64_t> dist(static_cast<int64_t>(min), static_cast<int64_t>(max));
     return static_cast<T>(dist(rng));
@@ -35,7 +35,7 @@ class DataGenerator {
 
   template <class T>
     requires IsInteger<T>
-  static std::vector<T> vector(size_t size, int seed, T min = std::numeric_limits<T>::min(),
+  static std::vector<T> vector(size_t size, unsigned seed, T min = std::numeric_limits<T>::min(),
                                T max = std::numeric_limits<T>::max()) {
     std::vector<T> result(size);
     std::mt19937 rng(seed);
@@ -48,7 +48,7 @@ class DataGenerator {
 
   template <class T>
     requires IsFloatingPoint<T>
-  static std::vector<T> vector(size_t size, int seed, T min = std::numeric_limits<T>::min(),
+  static std::vector<T> vector(size_t size, unsigned seed, T min = std::numeric_limits<T>::min(),
                                T max = std::numeric_limits<T>::max()) {
     std::vector<T> result(size);
     std::mt19937 rng(seed);
@@ -61,7 +61,7 @@ class DataGenerator {
 
   template <typename T>
     requires std::is_same_v<T, std::string>
-  static std::vector<std::string> vector(size_t size, int seed, int min = 1, int max = 256) {
+  static std::vector<std::string> vector(size_t size, unsigned seed, int min = 1, int max = 256) {
     std::vector<std::string> result(size);
 
     std::mt19937 rng(seed);
@@ -73,7 +73,7 @@ class DataGenerator {
     return result;
   }
 
-  static std::string string(size_t size, int seed) {
+  static std::string string(size_t size, unsigned seed) {
     std::string result;
     result.resize(size);
 
@@ -84,20 +84,6 @@ class DataGenerator {
       result[i] = static_cast<char>(dist(rng));
     }
     return result;
-  }
-
-  template <typename T>
-  requires IsInteger<T>
-  static Node<T>* linked_list(size_t size, int seed) {
-    auto val = DataGenerator::integer<T>(seed, 48, 122);
-    auto* start = new Node<T>(val);
-    auto* current = start;
-    for (auto i = 0; i < size; ++i) {
-      auto* next = new Node<T>(val);
-      current->next = next;
-      current = next;
-    }
-    return start;
   }
 };
 

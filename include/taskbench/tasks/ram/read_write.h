@@ -7,4 +7,10 @@
 
 #pragma once
 
-namespace taskbench::ram::read_write {}
+#include <cstddef>
+
+namespace taskbench::ram::read_write {
+
+void sequential(const int* src, int* dst, size_t size);
+
+}  // namespace taskbench::ram::read_write

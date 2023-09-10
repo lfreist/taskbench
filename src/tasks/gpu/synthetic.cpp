@@ -5,4 +5,4 @@
  * This file is part of taskbench.
  */
 
-#include <taskbench/tasks/gpu/sythetic.h>
+#include <taskbench/tasks/gpu/synthetic.h>
