@@ -8,9 +8,10 @@
 #include <fmt/color.h>
 #include <taskbench/tasks/gpu/benchmark.h>
 #include <taskbench/tasks/gpu/mmul.h>
-#include <taskbench/tasks/gpu/synthetic.h>
 #include <taskbench/utils/data_generator.h>
 #include <taskbench/utils/statistics.h>
+
+#include <missocl/opencl.h>
 
 #include <thread>
 
@@ -43,8 +44,7 @@ KERNEL_CODE(
         y = fma(x, y, x);
       }
       data[get_global_id(0)] = y;
-    }
-);
+    });
 
 KERNEL_CODE(
     ops_int_kernel, __kernel void ops_int_kernel(__global float* data) {
@@ -55,8 +55,7 @@ KERNEL_CODE(
         y = (x * y) + x;
       }
       data[get_global_id(0)] = y;
-    }
-);
+    });
 
 // _____________________________________________________________________________________________________________________
 void Benchmark::run_all(unsigned int iterations) {
@@ -124,35 +123,132 @@ void Benchmark::run_synthetic(unsigned int iterations) {
     std::cout << std::flush;
   }
 
-  // write
-  if (_verbosity != utils::VERBOSITY::OFF) {
-    fmt::print(fg(fmt::color::azure), "\r    {:20} ", "write to device");
-    fmt::print(fg(fmt::color::gray), "(0/{})...", iterations);
-    std::cout << std::flush;
+  {  // write
+    if (_verbosity != utils::VERBOSITY::OFF) {
+      fmt::print(fg(fmt::color::azure), "\r    {:20} ", "write");
+      fmt::print(fg(fmt::color::gray), "(0/{})...", iterations);
+      std::cout << std::flush;
+    }
+
+    mcl::Environment env;
+    mcl::Memory<1, float> memory(&env, S_1_GiB / sizeof(float), 0.0f);
+    memory.write_to_device();
+    auto kernel = env.add_kernel(cl::NDRange(16777216), "write_kernel", write_kernel);
+    kernel.set_parameters(memory);
+
+    for (unsigned i = 0; i < iterations; ++i) {
+      timer.start();
+      kernel.run();
+      auto runtime = timer.stop();
+      _add_result("write", runtime);
+
+      if (_verbosity != utils::VERBOSITY::OFF) {
+        fmt::print("\r                                                             ");
+        if (_benchmark_result.contains("write")) {
+          auto& results = _benchmark_result["write"];
+          fmt::print(fg(fmt::color::azure), "\r    {:20} ", "write");
+          fmt::print(fg(fmt::color::gray), "({}/{}): ", i + 1, iterations);
+          fmt::print(fg(fmt::color::green), "({:.3f} +/- {:.3f}) s ", utils::mean(results), utils::stdev(results));
+          fmt::print(fg(fmt::color::blue_violet), "[{:.2f} GiB/s]",
+                     static_cast<double>(memory.mem_size()) / S_1_GiB / utils::min(results));
+        }
+        std::cout << std::flush;
+      }
+    }
   }
 
-  mcl::Environment env;
-  mcl::Memory<1, float> memory(&env, S_1_GiB / sizeof (float), 0.0f);
-  memory.write_to_device();
-  auto kernel = env.add_kernel(cl::NDRange(16777216), "read_kernel", read_kernel);
-  kernel.set_parameters(memory);
-
-  for (unsigned i = 0; i < iterations; ++i) {
-    timer.start();
-    kernel.run();
-    auto runtime = timer.stop();
-    _add_result("write to device", runtime);
-
+  {  // read
     if (_verbosity != utils::VERBOSITY::OFF) {
-      fmt::print("\r                                                             ");
-      if (_benchmark_result.contains("write to device")) {
-        auto& results = _benchmark_result["write to device"];
-        fmt::print(fg(fmt::color::azure), "\r    {:20} ", "write to device");
-        fmt::print(fg(fmt::color::gray), "({}/{}): ", i + 1, iterations);
-        fmt::print(fg(fmt::color::green), "({:.3f} +/- {:.3f}) s ", utils::mean(results), utils::stdev(results));
-        fmt::print(fg(fmt::color::blue_violet), "[{:.2f} GiB/s]", memory.mem_size() / S_1_GiB / utils::mean(results));
-      }
+      fmt::print(fg(fmt::color::azure), "\n    {:20} ", "read");
+      fmt::print(fg(fmt::color::gray), "(0/{})...", iterations);
       std::cout << std::flush;
+    }
+
+    mcl::Environment env;
+    mcl::Memory<1, float> memory(&env, S_1_GiB / sizeof(float), 1.43f);
+    memory.write_to_device();
+    auto kernel = env.add_kernel(cl::NDRange(16777216), "read_kernel", read_kernel);
+    kernel.set_parameters(memory);
+
+    for (unsigned i = 0; i < iterations; ++i) {
+      timer.start();
+      kernel.run();
+      auto runtime = timer.stop();
+      _add_result("read", runtime);
+
+      if (_verbosity != utils::VERBOSITY::OFF) {
+        fmt::print("\r                                                             ");
+        if (_benchmark_result.contains("read")) {
+          auto& results = _benchmark_result["read"];
+          fmt::print(fg(fmt::color::azure), "\r    {:20} ", "read");
+          fmt::print(fg(fmt::color::gray), "({}/{}): ", i + 1, iterations);
+          fmt::print(fg(fmt::color::green), "({:.3f} +/- {:.3f}) s ", utils::mean(results), utils::stdev(results));
+          fmt::print(fg(fmt::color::blue_violet), "[{:.2f} GiB/s]",
+                     static_cast<double>(memory.mem_size()) / S_1_GiB / utils::min(results));
+        }
+        std::cout << std::flush;
+      }
+    }
+  }
+
+  {  // to device bandwidth
+    if (_verbosity != utils::VERBOSITY::OFF) {
+      fmt::print(fg(fmt::color::azure), "\n    {:20} ", "write to device");
+      fmt::print(fg(fmt::color::gray), "(0/{})...", iterations);
+      std::cout << std::flush;
+    }
+
+    for (unsigned i = 0; i < iterations; ++i) {
+      mcl::Environment env;
+      mcl::Memory<1, float> memory(&env, S_1_GiB / sizeof(float), 1.43f);
+      timer.start();
+      memory.write_to_device();
+      auto runtime = timer.stop();
+      _add_result("write to device", runtime);
+
+      if (_verbosity != utils::VERBOSITY::OFF) {
+        fmt::print("\r                                                             ");
+        if (_benchmark_result.contains("write to device")) {
+          auto& results = _benchmark_result["write to device"];
+          fmt::print(fg(fmt::color::azure), "\r    {:20} ", "write to device");
+          fmt::print(fg(fmt::color::gray), "({}/{}): ", i + 1, iterations);
+          fmt::print(fg(fmt::color::green), "({:.3f} +/- {:.3f}) s ", utils::mean(results), utils::stdev(results));
+          fmt::print(fg(fmt::color::blue_violet), "[{:.2f} GiB/s]",
+                     static_cast<double>(memory.mem_size()) / S_1_GiB / utils::min(results));
+        }
+        std::cout << std::flush;
+      }
+    }
+  }
+
+  {  // from device bandwidth
+    if (_verbosity != utils::VERBOSITY::OFF) {
+      fmt::print(fg(fmt::color::azure), "\n    {:20} ", "read from device");
+      fmt::print(fg(fmt::color::gray), "(0/{})...", iterations);
+      std::cout << std::flush;
+    }
+
+    for (unsigned i = 0; i < iterations; ++i) {
+      mcl::Environment env;
+      mcl::Memory<1, float> memory(&env, S_1_GiB / sizeof(float), 1.43f);
+      memory.write_to_device();
+      timer.start();
+      memory.read_from_device();
+      auto runtime = timer.stop();
+      _add_result("read from device", runtime);
+
+      if (_verbosity != utils::VERBOSITY::OFF) {
+        fmt::print("\r                                                             ");
+        if (_benchmark_result.contains("read from device")) {
+          auto& results = _benchmark_result["read from device"];
+          fmt::print(fg(fmt::color::azure), "\r    {:20} ", "read from device");
+          fmt::print(fg(fmt::color::gray), "({}/{}): ", i + 1, iterations);
+          fmt::print(fg(fmt::color::green), "({:.3f} +/- {:.3f}) s ", utils::mean(results), utils::stdev(results));
+          fmt::print(fg(fmt::color::blue_violet), "[{:.2f} GiB/s]",
+                     static_cast<double>(memory.mem_size()) / S_1_GiB / utils::min(results));
+        }
+        std::cout << std::flush;
+      }
     }
   }
 

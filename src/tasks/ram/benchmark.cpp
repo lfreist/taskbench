@@ -76,7 +76,7 @@ void Benchmark::run_read(unsigned int iterations) {
         fmt::print(fg(fmt::color::gray), "({}/{}): ", i + 1, iterations);
         fmt::print(fg(fmt::color::green), "({:.3f} +/- {:.3f}) s ", utils::mean(results), utils::stdev(results));
         fmt::print(fg(fmt::color::blue_violet), "[{:.2f} GiB/s]",
-                   1 / utils::mean(results));
+                   1 / utils::min(results));
       }
       std::cout << std::flush;
     }
@@ -133,7 +133,7 @@ void Benchmark::run_write(unsigned int iterations) {
         fmt::print(fg(fmt::color::gray), "({}/{}): ", i + 1, iterations);
         fmt::print(fg(fmt::color::green), "({:.3f} +/- {:.3f}) s ", utils::mean(results), utils::stdev(results));
         fmt::print(fg(fmt::color::blue_violet), "[{:.2f} GiB/s]",
-                   static_cast<double>(sizeof(int)) / 4.0f / utils::mean(results));
+                   static_cast<double>(sizeof(int)) / 4.0f / utils::min(results));
       }
       std::cout << std::flush;
     }
@@ -192,7 +192,7 @@ void Benchmark::run_read_write(unsigned int iterations) {
         fmt::print(fg(fmt::color::gray), "({}/{}): ", i + 1, iterations);
         fmt::print(fg(fmt::color::green), "({:.3f} +/- {:.3f}) s ", utils::mean(results), utils::stdev(results));
         fmt::print(fg(fmt::color::blue_violet), "[{:.2f} GiB/s]",
-                   static_cast<double>(sizeof(int)) / 4.0f / utils::mean(results));
+                   static_cast<double>(sizeof(int)) / 4.0f / utils::min(results));
       }
       std::cout << std::flush;
     }

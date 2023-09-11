@@ -44,4 +44,24 @@ double mean(const std::vector<std::chrono::duration<double>>& data);
 template <>
 double stdev(const std::vector<std::chrono::duration<double>>& data);
 
+template <typename T>
+T max(const std::vector<T>& data) {
+  return *std::max_element(data.begin(), data.end());
+}
+
+template <typename T>
+T min(const std::vector<T>& data) {
+  return *std::max_element(data.begin(), data.end());
+}
+
+template <typename T>
+T max(const std::vector<std::chrono::duration<T>>& data) {
+  return std::max_element(data.begin(), data.end())->count();
+}
+
+template <typename T>
+T min(const std::vector<std::chrono::duration<T>>& data) {
+  return std::min_element(data.begin(), data.end())->count();
+}
+
 }  // namespace taskbench::utils
