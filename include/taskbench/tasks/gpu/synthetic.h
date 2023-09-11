@@ -6,3 +6,19 @@
  */
 
 #pragma once
+
+#include <vector>
+
+#include <missocl/opencl.h>
+
+namespace taskbench::gpu::synthetic {
+
+void mem_write(mcl::Kernel& kernel);
+
+void mem_read(mcl::Kernel& kernel);
+
+void ops_fp(mcl::Kernel& kernel);
+
+void ops_int(mcl::Kernel& kernel);
+
+}

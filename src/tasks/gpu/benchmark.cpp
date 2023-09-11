@@ -16,6 +16,48 @@
 
 namespace taskbench::gpu {
 
+KERNEL_CODE(
+    read_kernel, __kernel void read_kernel(__global float* data) {
+      const uint id = get_global_id(0);
+      float x = 0.0f;
+      for (uint i = 0u; i < 16; i++) {
+        x += data[i * 16777216 + id];
+      }
+      data[id] = x;
+    });
+
+KERNEL_CODE(
+    write_kernel, __kernel void write_kernel(__global float* data) {
+      const uint id = get_global_id(0);
+      for (uint i = 0u; i < 16; i++) {
+        data[i * 16777216 + id] = 0.0f;
+      }
+    });
+
+KERNEL_CODE(
+    ops_fp_kernel, __kernel void ops_fp_kernel(__global float* data) {
+      float x = (float)get_global_id(0);
+      float y = (float)get_global_id(0);
+      for (uint i = 0; i < 512; ++i) {
+        x = fma(y, x, y);
+        y = fma(x, y, x);
+      }
+      data[get_global_id(0)] = y;
+    }
+);
+
+KERNEL_CODE(
+    ops_int_kernel, __kernel void ops_int_kernel(__global float* data) {
+      int x = get_global_id(0);
+      int y = get_global_id(0);
+      for (uint i = 0; i < 512; ++i) {
+        x = (y * x) + y;
+        y = (x * y) + x;
+      }
+      data[get_global_id(0)] = y;
+    }
+);
+
 // _____________________________________________________________________________________________________________________
 void Benchmark::run_all(unsigned int iterations) {
   if (_verbosity != utils::VERBOSITY::OFF) {
@@ -74,6 +116,49 @@ void Benchmark::run_mmul(unsigned int iterations) {
 }
 
 // _____________________________________________________________________________________________________________________
-void Benchmark::run_synthetic(unsigned int iterations) {}
+void Benchmark::run_synthetic(unsigned int iterations) {
+  utils::Timer timer;
+
+  if (_verbosity != utils::VERBOSITY::OFF) {
+    fmt::print(fg(fmt::color::slate_gray) | fmt::emphasis::italic, "    Building benchmark data...");
+    std::cout << std::flush;
+  }
+
+  // write
+  if (_verbosity != utils::VERBOSITY::OFF) {
+    fmt::print(fg(fmt::color::azure), "\r    {:20} ", "write to device");
+    fmt::print(fg(fmt::color::gray), "(0/{})...", iterations);
+    std::cout << std::flush;
+  }
+
+  mcl::Environment env;
+  mcl::Memory<1, float> memory(&env, S_1_GiB / sizeof (float), 0.0f);
+  memory.write_to_device();
+  auto kernel = env.add_kernel(cl::NDRange(16777216), "read_kernel", read_kernel);
+  kernel.set_parameters(memory);
+
+  for (unsigned i = 0; i < iterations; ++i) {
+    timer.start();
+    kernel.run();
+    auto runtime = timer.stop();
+    _add_result("write to device", runtime);
+
+    if (_verbosity != utils::VERBOSITY::OFF) {
+      fmt::print("\r                                                             ");
+      if (_benchmark_result.contains("write to device")) {
+        auto& results = _benchmark_result["write to device"];
+        fmt::print(fg(fmt::color::azure), "\r    {:20} ", "write to device");
+        fmt::print(fg(fmt::color::gray), "({}/{}): ", i + 1, iterations);
+        fmt::print(fg(fmt::color::green), "({:.3f} +/- {:.3f}) s ", utils::mean(results), utils::stdev(results));
+        fmt::print(fg(fmt::color::blue_violet), "[{:.2f} GiB/s]", memory.mem_size() / S_1_GiB / utils::mean(results));
+      }
+      std::cout << std::flush;
+    }
+  }
+
+  if (_verbosity != utils::VERBOSITY::OFF) {
+    std::cout << std::endl;
+  }
+}
 
 }  // namespace taskbench::gpu

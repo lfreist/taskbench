@@ -13,8 +13,8 @@ int main(int argc, char** argv) {
   taskbench::cpu::Benchmark cpu_benchmark;
   taskbench::ram::Benchmark ram_benchmark;
   taskbench::gpu::Benchmark gpu_benchmark;
-  // ram_benchmark.run_all(30);
-  // cpu_benchmark.run_all(3);
+  ram_benchmark.run_all(30);
+  cpu_benchmark.run_all(3);
   gpu_benchmark.run_all(3);
   return 0;
 }
