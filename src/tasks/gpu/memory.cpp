@@ -7,6 +7,8 @@
 
 #include <taskbench/tasks/gpu/memory.h>
 
+#include <missocl/opencl.h>
+
 namespace taskbench::gpu::memory {
 
 std::string get_mem_read_kernel() {

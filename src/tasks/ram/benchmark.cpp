@@ -67,7 +67,7 @@ void Benchmark::run_read(seconds runtime) {
     rt_timer.start();
     auto rt = runtime;
     while (rt.count() > 0) {
-      int pos = 0;
+      size_t pos = 0;
       timer.start();
       for (auto& t : threads) {
         t = std::thread(read::sequential, data.data() + pos, seq_partition_size);
@@ -113,7 +113,7 @@ void Benchmark::run_write(seconds runtime) {
     auto rt = runtime;
     while (rt.count() > 0) {
       SmartBuffer<int> data(size);
-      int pos = 0;
+      size_t pos = 0;
       timer.start();
       for (auto& t : threads) {
         t = std::thread(write::sequential, data.data + pos, partition_size, 5);
@@ -168,7 +168,7 @@ void Benchmark::run_read_write(seconds runtime) {
     while (rt.count() > 0) {
       SmartBuffer<int> dst(size);
       std::memset(data.data, 4, size);
-      int pos = 0;
+      size_t pos = 0;
       timer.start();
       for (auto& t : threads) {
         t = std::thread(read_write::sequential, data.data + pos, dst.data + pos, partition_size);

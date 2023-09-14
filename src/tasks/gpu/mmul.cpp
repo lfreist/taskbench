@@ -33,8 +33,9 @@ void matrix_multiply(std::vector<float>& mat1, std::vector<float>& mat2, std::ve
 
   auto kernel = env.add_kernel(cl::NDRange(size, size), "mmul", mmul);
 
-  kernel.set_parameters(A, B, C);           // pointer arguments
-  kernel.set_args(size, size, size, size);  // integer arguments
+  kernel.set_parameters<mcl::Memory<2, float>>(A, B, C);  // pointer arguments
+  kernel.set_args(static_cast<int>(size), static_cast<int>(size), static_cast<int>(size),
+                  static_cast<int>(size));                // integer arguments
   A.write_to_device();
   B.write_to_device();
 

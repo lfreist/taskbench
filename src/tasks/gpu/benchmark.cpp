@@ -226,7 +226,7 @@ void Benchmark::run_synthetic(seconds runtime) {
     std::fill_n(data.data(), data.size(), 4);
     auto setup = synthetic::create_mcl_setup<int>(data);
 
-    _register_benchmark(0, 2048.0f * size, name);
+    _register_benchmark(0, 2048 * size, name);
 
     utils::Timer rt_timer;
     rt_timer.start();
@@ -255,7 +255,7 @@ void Benchmark::run_synthetic(seconds runtime) {
     std::fill_n(data.data(), data.size(), 4.465f);
     auto setup = synthetic::create_mcl_setup(data);
 
-    _register_benchmark(0, 2048.0f * size, name);
+    _register_benchmark(0, 2048 * size, name);
 
     utils::Timer rt_timer;
     rt_timer.start();
