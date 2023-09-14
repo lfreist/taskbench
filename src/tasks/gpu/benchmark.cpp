@@ -6,253 +6,272 @@
  */
 
 #include <fmt/color.h>
-#include <taskbench/tasks/gpu/benchmark.h>
-#include <taskbench/tasks/gpu/mmul.h>
-#include <taskbench/utils/data_generator.h>
-#include <taskbench/utils/statistics.h>
-
 #include <missocl/opencl.h>
+#include <taskbench/tasks/gpu/benchmark.h>
+#include <taskbench/tasks/gpu/memory.h>
+#include <taskbench/tasks/gpu/mmul.h>
+#include <taskbench/tasks/gpu/synthetic.h>
+#include <taskbench/utils/format.h>
+#include <taskbench/utils/statistics.h>
 
 #include <thread>
 
 namespace taskbench::gpu {
 
-KERNEL_CODE(
-    read_kernel, __kernel void read_kernel(__global float* data) {
-      const uint id = get_global_id(0);
-      float x = 0.0f;
-      for (uint i = 0u; i < 16; i++) {
-        x += data[i * 16777216 + id];
-      }
-      data[id] = x;
-    });
-
-KERNEL_CODE(
-    write_kernel, __kernel void write_kernel(__global float* data) {
-      const uint id = get_global_id(0);
-      for (uint i = 0u; i < 16; i++) {
-        data[i * 16777216 + id] = 0.0f;
-      }
-    });
-
-KERNEL_CODE(
-    ops_fp_kernel, __kernel void ops_fp_kernel(__global float* data) {
-      float x = (float)get_global_id(0);
-      float y = (float)get_global_id(0);
-      for (uint i = 0; i < 512; ++i) {
-        x = fma(y, x, y);
-        y = fma(x, y, x);
-      }
-      data[get_global_id(0)] = y;
-    });
-
-KERNEL_CODE(
-    ops_int_kernel, __kernel void ops_int_kernel(__global float* data) {
-      int x = get_global_id(0);
-      int y = get_global_id(0);
-      for (uint i = 0; i < 512; ++i) {
-        x = (y * x) + y;
-        y = (x * y) + x;
-      }
-      data[get_global_id(0)] = y;
-    });
-
 // _____________________________________________________________________________________________________________________
-void Benchmark::run_all(unsigned int iterations) {
-  if (_verbosity != utils::VERBOSITY::OFF) {
+void Benchmark::run_all(seconds runtime) {
+  if (_verbosity != VERBOSITY::OFF) {
     fmt::print(fg(fmt::color::beige) | fmt::emphasis::bold, "GPU Benchmarks:\n");
     std::cout << std::flush;
   }
-  run_mmul(iterations);
-  run_synthetic(iterations);
+  run_mmul(runtime);
+  run_synthetic(runtime);
+  run_memory(runtime);
+  run_transfer_speed(runtime);
 }
 
 // _____________________________________________________________________________________________________________________
-void Benchmark::run_mmul(unsigned int iterations) {
+void Benchmark::run_mmul(seconds runtime) {
   utils::Timer timer;
 
-  if (_verbosity != utils::VERBOSITY::OFF) {
-    fmt::print(fg(fmt::color::slate_gray) | fmt::emphasis::italic, "    Building benchmark data...");
+  if (_verbosity != VERBOSITY::OFF) {
+    fmt::print(fg(fmt::color::aqua) | fmt::emphasis::bold, "  Matrix Multiplication Benchmarks:\n");
     std::cout << std::flush;
   }
 
-  size_t size = 2048 * 2048;
-  // auto mat1 = utils::DataGenerator::vector<float>(size, 42);
-  // auto mat2 = utils::DataGenerator::vector<float>(size, 16);
-  std::vector<float> mat1(size);
-  std::vector<float> mat2(size);
-  std::vector<float> result(size);
-  std::fill_n(mat1.data(), mat1.size(), 3.563f);
-  std::fill_n(mat2.data(), mat2.size(), 1.23457f);
-  std::fill_n(result.data(), result.size(), 0.0f);
-
-  if (_verbosity != utils::VERBOSITY::OFF) {
-    fmt::print(fg(fmt::color::azure), "\r    {:20} ", "mmul");
-    fmt::print(fg(fmt::color::gray), "(0/{})...", iterations);
-    std::cout << std::flush;
-  }
-
-  for (unsigned i = 0; i < iterations; ++i) {
-    timer.start();
-    mmul::matrix_multiply(mat1, mat2, result, 2048);
-    auto runtime = timer.stop();
-    _add_result("mmul", runtime);
-
-    if (_verbosity != utils::VERBOSITY::OFF) {
-      fmt::print("\r                                                             ");
-      if (_benchmark_result.contains("mmul")) {
-        auto& results = _benchmark_result["mmul"];
-        fmt::print(fg(fmt::color::azure), "\r    {:20} ", "mmul");
-        fmt::print(fg(fmt::color::gray), "({}/{}): ", i + 1, iterations);
-        fmt::print(fg(fmt::color::green), "({:.3f} +/- {:.3f}) s ", utils::mean(results), utils::stdev(results));
-      }
+  {  // GPU matrix multiplication
+    std::string name("mmul");
+    _register_benchmark(2048 * 2048, 2 * (static_cast<size_t>(2048 * 2048) * 2048) - (2048 * 2048), name);
+    if (_verbosity != VERBOSITY::OFF) {
+      fmt::print(fg(fmt::color::azure), "\r    {:20} ", name);
       std::cout << std::flush;
     }
+
+    size_t size = 2048 * 2048;
+    std::vector<float> mat1(size);
+    std::vector<float> mat2(size);
+    std::vector<float> result(size);
+    std::fill_n(mat1.data(), mat1.size(), 3.563f);
+    std::fill_n(mat2.data(), mat2.size(), 1.23457f);
+    std::fill_n(result.data(), result.size(), 0.0f);
+
+    utils::Timer rt_timer;
+    rt_timer.start();
+    auto rt = runtime;
+    while (rt.count() > 0) {
+      timer.start();
+      mmul::matrix_multiply(mat1, mat2, result, 2048);
+      auto bm_time = timer.stop();
+      _add_result(name, bm_time);
+      _print_runtime(_benchmark_result.at(name));
+      _print_o_per_second(_benchmark_result.at(name));
+      rt -= rt_timer.round();
+    }
   }
-  if (_verbosity != utils::VERBOSITY::OFF) {
+
+  if (_verbosity != VERBOSITY::OFF) {
     std::cout << std::endl;
   }
 }
 
 // _____________________________________________________________________________________________________________________
-void Benchmark::run_synthetic(unsigned int iterations) {
+void Benchmark::run_memory(seconds runtime) {
   utils::Timer timer;
 
-  if (_verbosity != utils::VERBOSITY::OFF) {
-    fmt::print(fg(fmt::color::slate_gray) | fmt::emphasis::italic, "    Building benchmark data...");
+  if (_verbosity != VERBOSITY::OFF) {
+    fmt::print(fg(fmt::color::aqua) | fmt::emphasis::bold, "  Memory Benchmarks:\n");
     std::cout << std::flush;
   }
 
-  {  // write
-    if (_verbosity != utils::VERBOSITY::OFF) {
-      fmt::print(fg(fmt::color::azure), "\r    {:20} ", "write");
-      fmt::print(fg(fmt::color::gray), "(0/{})...", iterations);
+  size_t size = _array_size<float>(_buffer_size);
+  std::vector<float> data(size);
+  std::fill_n(data.data(), data.size(), 0.0f);
+
+  {  // GPU memory write
+    std::string name("memory write");
+    _register_benchmark(_buffer_size, 0, name);
+    if (_verbosity != VERBOSITY::OFF) {
+      fmt::print(fg(fmt::color::azure), "\r    {:20} ", name);
       std::cout << std::flush;
     }
 
-    mcl::Environment env;
-    mcl::Memory<1, float> memory(&env, S_1_GiB / sizeof(float), 0.0f);
-    memory.write_to_device();
-    auto kernel = env.add_kernel(cl::NDRange(16777216), "write_kernel", write_kernel);
-    kernel.set_parameters(memory);
+    auto setup = memory::setup_memory_write(data);
 
-    for (unsigned i = 0; i < iterations; ++i) {
+    utils::Timer rt_timer;
+    rt_timer.start();
+    auto rt = runtime;
+    while (rt.count() > 0) {
       timer.start();
-      kernel.run();
-      auto runtime = timer.stop();
-      _add_result("write", runtime);
-
-      if (_verbosity != utils::VERBOSITY::OFF) {
-        fmt::print("\r                                                             ");
-        if (_benchmark_result.contains("write")) {
-          auto& results = _benchmark_result["write"];
-          fmt::print(fg(fmt::color::azure), "\r    {:20} ", "write");
-          fmt::print(fg(fmt::color::gray), "({}/{}): ", i + 1, iterations);
-          fmt::print(fg(fmt::color::green), "({:.3f} +/- {:.3f}) s ", utils::mean(results), utils::stdev(results));
-          fmt::print(fg(fmt::color::blue_violet), "[{:.2f} GiB/s]",
-                     static_cast<double>(memory.mem_size()) / S_1_GiB / utils::min(results));
-        }
-        std::cout << std::flush;
-      }
+      setup.kernel->run();
+      auto bm_time = timer.stop();
+      _add_result(name, bm_time);
+      _print_runtime(_benchmark_result.at(name));
+      _print_gib_per_second(_benchmark_result.at(name));
+      rt -= rt_timer.round();
     }
   }
 
-  {  // read
-    if (_verbosity != utils::VERBOSITY::OFF) {
-      fmt::print(fg(fmt::color::azure), "\n    {:20} ", "read");
-      fmt::print(fg(fmt::color::gray), "(0/{})...", iterations);
+  {  // GPU memory read
+    std::string name("memory read");
+    _register_benchmark(_buffer_size, 0, name);
+    if (_verbosity != VERBOSITY::OFF) {
+      fmt::print(fg(fmt::color::azure), "\n    {:20} ", name);
       std::cout << std::flush;
     }
 
-    mcl::Environment env;
-    mcl::Memory<1, float> memory(&env, S_1_GiB / sizeof(float), 1.43f);
-    memory.write_to_device();
-    auto kernel = env.add_kernel(cl::NDRange(16777216), "read_kernel", read_kernel);
-    kernel.set_parameters(memory);
+    auto setup = memory::setup_memory_read(data);
 
-    for (unsigned i = 0; i < iterations; ++i) {
+    utils::Timer rt_timer;
+    rt_timer.start();
+    auto rt = runtime;
+    while (rt.count() > 0) {
       timer.start();
-      kernel.run();
-      auto runtime = timer.stop();
-      _add_result("read", runtime);
-
-      if (_verbosity != utils::VERBOSITY::OFF) {
-        fmt::print("\r                                                             ");
-        if (_benchmark_result.contains("read")) {
-          auto& results = _benchmark_result["read"];
-          fmt::print(fg(fmt::color::azure), "\r    {:20} ", "read");
-          fmt::print(fg(fmt::color::gray), "({}/{}): ", i + 1, iterations);
-          fmt::print(fg(fmt::color::green), "({:.3f} +/- {:.3f}) s ", utils::mean(results), utils::stdev(results));
-          fmt::print(fg(fmt::color::blue_violet), "[{:.2f} GiB/s]",
-                     static_cast<double>(memory.mem_size()) / S_1_GiB / utils::min(results));
-        }
-        std::cout << std::flush;
-      }
+      setup.kernel->run();
+      auto bm_time = timer.stop();
+      _add_result(name, bm_time);
+      _print_runtime(_benchmark_result.at(name));
+      _print_gib_per_second(_benchmark_result.at(name));
+      rt -= rt_timer.round();
     }
   }
 
-  {  // to device bandwidth
-    if (_verbosity != utils::VERBOSITY::OFF) {
-      fmt::print(fg(fmt::color::azure), "\n    {:20} ", "write to device");
-      fmt::print(fg(fmt::color::gray), "(0/{})...", iterations);
+  if (_verbosity != VERBOSITY::OFF) {
+    std::cout << std::endl;
+  }
+}
+
+// _____________________________________________________________________________________________________________________
+void Benchmark::run_transfer_speed(seconds runtime) {
+  utils::Timer timer;
+
+  if (_verbosity != VERBOSITY::OFF) {
+    fmt::print(fg(fmt::color::aqua) | fmt::emphasis::bold, "  Transfer Benchmarks:\n");
+    std::cout << std::flush;
+  }
+
+  size_t size = _array_size<float>(_buffer_size);
+  std::vector<float> data(size);
+  std::fill_n(data.data(), data.size(), 0.0f);
+
+  {  // write data to OpenCL device
+    std::string name("write to device");
+    _register_benchmark(_buffer_size, 0, name);
+    if (_verbosity != VERBOSITY::OFF) {
+      fmt::print(fg(fmt::color::azure), "\r    {:20} ", name);
       std::cout << std::flush;
     }
 
-    for (unsigned i = 0; i < iterations; ++i) {
-      mcl::Environment env;
-      mcl::Memory<1, float> memory(&env, S_1_GiB / sizeof(float), 1.43f);
+    utils::Timer rt_timer;
+    rt_timer.start();
+    auto rt = runtime;
+    while (rt.count() > 0) {
+      auto setup = memory::setup_memory(data);
       timer.start();
-      memory.write_to_device();
-      auto runtime = timer.stop();
-      _add_result("write to device", runtime);
-
-      if (_verbosity != utils::VERBOSITY::OFF) {
-        fmt::print("\r                                                             ");
-        if (_benchmark_result.contains("write to device")) {
-          auto& results = _benchmark_result["write to device"];
-          fmt::print(fg(fmt::color::azure), "\r    {:20} ", "write to device");
-          fmt::print(fg(fmt::color::gray), "({}/{}): ", i + 1, iterations);
-          fmt::print(fg(fmt::color::green), "({:.3f} +/- {:.3f}) s ", utils::mean(results), utils::stdev(results));
-          fmt::print(fg(fmt::color::blue_violet), "[{:.2f} GiB/s]",
-                     static_cast<double>(memory.mem_size()) / S_1_GiB / utils::min(results));
-        }
-        std::cout << std::flush;
-      }
+      setup.buffer.write_to_device();
+      auto bm_time = timer.stop();
+      _add_result(name, bm_time);
+      _print_runtime(_benchmark_result.at(name));
+      _print_gib_per_second(_benchmark_result.at(name));
+      rt -= rt_timer.round();
     }
   }
 
-  {  // from device bandwidth
-    if (_verbosity != utils::VERBOSITY::OFF) {
-      fmt::print(fg(fmt::color::azure), "\n    {:20} ", "read from device");
-      fmt::print(fg(fmt::color::gray), "(0/{})...", iterations);
+  {  // read data from OpenCL device
+    std::string name("read from device");
+    _register_benchmark(_buffer_size, 0, name);
+    if (_verbosity != VERBOSITY::OFF) {
+      fmt::print(fg(fmt::color::azure), "\n    {:20} ", name);
       std::cout << std::flush;
     }
 
-    for (unsigned i = 0; i < iterations; ++i) {
-      mcl::Environment env;
-      mcl::Memory<1, float> memory(&env, S_1_GiB / sizeof(float), 1.43f);
-      memory.write_to_device();
+    utils::Timer rt_timer;
+    rt_timer.start();
+    auto rt = runtime;
+    while (rt.count() > 0) {
+      auto setup = memory::setup_memory(data);
+      setup.buffer.write_to_device();
       timer.start();
-      memory.read_from_device();
-      auto runtime = timer.stop();
-      _add_result("read from device", runtime);
-
-      if (_verbosity != utils::VERBOSITY::OFF) {
-        fmt::print("\r                                                             ");
-        if (_benchmark_result.contains("read from device")) {
-          auto& results = _benchmark_result["read from device"];
-          fmt::print(fg(fmt::color::azure), "\r    {:20} ", "read from device");
-          fmt::print(fg(fmt::color::gray), "({}/{}): ", i + 1, iterations);
-          fmt::print(fg(fmt::color::green), "({:.3f} +/- {:.3f}) s ", utils::mean(results), utils::stdev(results));
-          fmt::print(fg(fmt::color::blue_violet), "[{:.2f} GiB/s]",
-                     static_cast<double>(memory.mem_size()) / S_1_GiB / utils::min(results));
-        }
-        std::cout << std::flush;
-      }
+      setup.buffer.read_from_device();
+      auto bm_time = timer.stop();
+      _add_result(name, bm_time);
+      _print_runtime(_benchmark_result.at(name));
+      _print_gib_per_second(_benchmark_result.at(name));
+      rt -= rt_timer.round();
     }
   }
 
-  if (_verbosity != utils::VERBOSITY::OFF) {
+  if (_verbosity != VERBOSITY::OFF) {
+    std::cout << std::endl;
+  }
+}
+
+// _____________________________________________________________________________________________________________________
+void Benchmark::run_synthetic(seconds runtime) {
+  utils::Timer timer;
+
+  if (_verbosity != VERBOSITY::OFF) {
+    fmt::print(fg(fmt::color::aqua) | fmt::emphasis::bold, "  Synthetic Benchmarks:\n");
+    std::cout << std::flush;
+  }
+
+  {  // computing GPU integer ops
+    std::string name("integer ops");
+    if (_verbosity != VERBOSITY::OFF) {
+      fmt::print(fg(fmt::color::azure), "\r    {:20} ", name);
+      std::cout << std::flush;
+    }
+
+    size_t size = S_1_GiB / sizeof(int);
+    std::vector<int> data(size);
+    std::fill_n(data.data(), data.size(), 4);
+    auto setup = synthetic::create_mcl_setup<int>(data);
+
+    _register_benchmark(0, 2048.0f * size, name);
+
+    utils::Timer rt_timer;
+    rt_timer.start();
+    auto rt = runtime;
+    while (rt.count() > 0) {
+      timer.start();
+      setup.kernel->run();
+      auto bm_time = timer.stop();
+      setup.buffer.read_from_device();
+      _add_result(name, bm_time);
+      _print_runtime(_benchmark_result.at(name));
+      _print_o_per_second(_benchmark_result.at(name));
+      rt -= rt_timer.round();
+    }
+  }
+
+  {  // computing GPU float operations
+    std::string name("float ops");
+    if (_verbosity != VERBOSITY::OFF) {
+      fmt::print(fg(fmt::color::azure), "\n    {:20} ", name);
+      std::cout << std::flush;
+    }
+
+    size_t size = S_1_GiB / sizeof(float);
+    std::vector<float> data(size);
+    std::fill_n(data.data(), data.size(), 4.465f);
+    auto setup = synthetic::create_mcl_setup(data);
+
+    _register_benchmark(0, 2048.0f * size, name);
+
+    utils::Timer rt_timer;
+    rt_timer.start();
+    auto rt = runtime;
+    while (rt.count() > 0) {
+      timer.start();
+      setup.kernel->run();
+      auto bm_time = timer.stop();
+      _add_result(name, bm_time);
+      _print_runtime(_benchmark_result.at(name));
+      _print_o_per_second(_benchmark_result.at(name));
+      rt -= rt_timer.round();
+    }
+  }
+
+  if (_verbosity != VERBOSITY::OFF) {
     std::cout << std::endl;
   }
 }

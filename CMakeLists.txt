@@ -15,12 +15,14 @@ include_directories(external/zstd/lib)
 include_directories(external/AES/src)
 include_directories(external/fmt/include)
 include_directories(external/miss-ocl/include)
+include_directories(external/json/include)
 
 # --- external builds --------------------------------------------------------------------------------------------------
 add_subdirectory(external/zstd/build/cmake)
 add_subdirectory(external/AES)
 add_subdirectory(external/fmt)
 add_subdirectory(external/miss-ocl)
+add_subdirectory(external/json)
 
 
 add_subdirectory(src)

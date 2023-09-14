@@ -13,23 +13,26 @@
 #include <taskbench/tasks/cpu/mmul.h>
 #include <taskbench/tasks/cpu/sort.h>
 #include <taskbench/tasks/cpu/synthetic.h>
-#include <taskbench/utils/benchmark.h>
+#include <taskbench/benchmark.h>
 
 #include <map>
 #include <string>
 
 namespace taskbench::ram {
 
-class Benchmark : public utils::AbstractBenchmark {
+class Benchmark : public AbstractBenchmark {
  public:
   Benchmark() = default;
   ~Benchmark() override = default;
 
-  void run_all(unsigned iterations) override;
+  void run_all(seconds runtime) override;
 
-  void run_read(unsigned iterations = 1);
-  void run_write(unsigned iterations = 1);
-  void run_read_write(unsigned iterations = 1);
+  void run_read(seconds runtime);
+  void run_write(seconds runtime);
+  void run_read_write(seconds runtime);
+
+ private:
+  size_t _buffer_size = S_1_GiB;
 };
 
 }  // namespace taskbench::ram

@@ -30,6 +30,18 @@ class Timer {
    */
   std::chrono::duration<double> stop() noexcept;
 
+  /**
+   * @brief Get the current time since start without stopping the timer
+   * @return
+   */
+  std::chrono::duration<double> count() noexcept;
+
+  /**
+   * @brief Returns count and restarts the timer
+   * @return
+   */
+  std::chrono::duration<double> round() noexcept;
+
  private:
   std::chrono::time_point<clock, std::chrono::nanoseconds> _start;
 };

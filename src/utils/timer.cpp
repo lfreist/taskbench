@@ -20,4 +20,17 @@ std::chrono::duration<double> Timer::stop() noexcept {
   return end - _start;
 }
 
+// _____________________________________________________________________________________________________________________
+std::chrono::duration<double> Timer::count() noexcept {
+  return clock::now() - _start;
+}
+
+// _____________________________________________________________________________________________________________________
+std::chrono::duration<double> Timer::round() noexcept {
+  auto end = clock::now();
+  auto c = end - _start;
+  _start = end;
+  return c;
+}
+
 }

@@ -15,6 +15,8 @@
 
 #include <taskbench/utils/timer.h>
 
+#include <nlohmann/json.hpp>
+
 #define S_1_MiB 0x100000
 #define S_2_MiB 0x200000
 #define S_4_MiB 0x400000
@@ -30,9 +32,45 @@
 #define S_4_GiB 0x100000000
 #define S_8_GiB 0x200000000
 
-namespace taskbench::utils {
+namespace taskbench {
 
-typedef std::vector<std::chrono::duration<double>> BenchmarkResult;
+typedef std::chrono::duration<double> seconds;
+
+class BenchmarkResult {
+ public:
+  BenchmarkResult(std::string name, size_t data_size, size_t num_operations);
+
+  double runtime_mean() const;
+  double runtime_stdev() const;
+  double runtime_max() const;
+  double runtime_min() const;
+
+  double ops_mean() const;
+  double ops_stdev() const;
+  double ops_max() const;
+  double ops_min() const;
+
+  double bps_mean() const;
+  double bps_stdev() const;
+  double bps_max() const;
+  double bps_min() const;
+
+  const std::vector<seconds>& runtimes() const;
+  void add_runtime(seconds runtime);
+
+  nlohmann::json json();
+
+  const std::string& name() const;
+
+  size_t data_size() const;
+
+ private:
+  std::string _name;
+  std::vector<seconds> _runtimes;
+  size_t _data_size;
+  size_t _num_operations;
+};
+
 
 enum class VERBOSITY {
   OFF,
@@ -49,7 +87,7 @@ class AbstractBenchmark {
   AbstractBenchmark() = default;
   virtual ~AbstractBenchmark() = default;
 
-  virtual void run_all(unsigned iterations) = 0;
+  virtual void run_all(seconds runtime) = 0;
 
   /**
    * @brief Delete collected benchmark results
@@ -68,14 +106,19 @@ class AbstractBenchmark {
    */
   std::map<std::string, BenchmarkResult> results();
 
-  /**
-   * @brief Write the results to the provided stream
-   * @param stream
-   */
-  void print() const;
-
  protected:
-  void _add_result(const std::string& key, std::chrono::duration<double> value);
+  template <typename T>
+  static size_t _array_size(size_t buffer_size) {
+    return buffer_size / sizeof(T);
+  }
+
+  void _register_benchmark(size_t data_size, size_t num_operations, const std::string& name);
+
+  void _add_result(const std::string& key, seconds val);
+
+  void _print_runtime(const BenchmarkResult& bm_res);
+  void _print_gib_per_second(const BenchmarkResult& bm_res);
+  void _print_o_per_second(const BenchmarkResult& bm_res);
 
   std::map<std::string, BenchmarkResult> _benchmark_result;
 
@@ -83,4 +126,4 @@ class AbstractBenchmark {
 };
 
 
-}  // namespace taskbench::utils
+}  // namespace taskbench

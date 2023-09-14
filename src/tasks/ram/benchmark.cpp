@@ -17,191 +17,185 @@
 
 namespace taskbench::ram {
 
+template <typename T>
+struct SmartBuffer {
+  SmartBuffer(size_t s) {
+    data = new T[s];
+    size = s;
+  }
+  ~SmartBuffer() { delete[] data; }
+  void resize(size_t s) {
+    delete[] data;
+    data = new T[size];
+    size = s;
+  }
+  T* data;
+  size_t size;
+};
+
 // _____________________________________________________________________________________________________________________
-void Benchmark::run_all(unsigned int iterations) {
-  if (_verbosity != utils::VERBOSITY::OFF) {
+void Benchmark::run_all(seconds runtime) {
+  if (_verbosity != VERBOSITY::OFF) {
     fmt::print(fg(fmt::color::beige) | fmt::emphasis::bold, "RAM Benchmarks:\n");
     std::cout << std::flush;
   }
-  run_read(iterations);
-  run_write(iterations);
-  run_read_write(iterations);
+  run_read(runtime);
+  run_write(runtime);
+  run_read_write(runtime);
 }
 
 // _____________________________________________________________________________________________________________________
-void Benchmark::run_read(unsigned int iterations) {
+void Benchmark::run_read(seconds runtime) {
   utils::Timer timer;
 
-  if (_verbosity != utils::VERBOSITY::OFF) {
-    fmt::print(fg(fmt::color::slate_gray) | fmt::emphasis::italic, "    Building benchmark data...");
-    std::cout << std::flush;
-  }
-
-  int num_threads = static_cast<int>(std::thread::hardware_concurrency());
-
-  std::random_device dev;
-
-  std::vector<char> data(S_1_GiB);
-  std::fill_n(data.data(), data.size(), utils::DataGenerator::integer<char>(dev(), 1));
-
-  // sequential
-  if (_verbosity != utils::VERBOSITY::OFF) {
-    fmt::print(fg(fmt::color::azure), "\r    {:20} ", "read");
-    fmt::print(fg(fmt::color::gray), "(0/{})...", iterations);
-    std::cout << std::flush;
-  }
-
-  auto seq_partition_size = S_1_GiB / num_threads;
-  for (unsigned i = 0; i < iterations; ++i) {
-    std::vector<std::thread> threads(num_threads);
-    int pos = 0;
-    timer.start();
-    for (auto& t : threads) {
-      t = std::thread(read::sequential, data.data() + pos, seq_partition_size);
-      pos += seq_partition_size;
-    }
-    for (auto& t : threads) {
-      if (t.joinable()) {
-        t.join();
-      }
-    }
-    auto runtime = timer.stop();
-    _add_result("read", runtime);
-
-    if (_verbosity != utils::VERBOSITY::OFF) {
-      fmt::print("\r                                                             ");
-      if (_benchmark_result.contains("read")) {
-        auto& results = _benchmark_result["read"];
-        fmt::print(fg(fmt::color::azure), "\r    {:20} ", "read");
-        fmt::print(fg(fmt::color::gray), "({}/{}): ", i + 1, iterations);
-        fmt::print(fg(fmt::color::green), "({:.3f} +/- {:.3f}) s ", utils::mean(results), utils::stdev(results));
-        fmt::print(fg(fmt::color::blue_violet), "[{:.2f} GiB/s]",
-                   1 / utils::min(results));
-      }
+  {  // read
+    std::string name("read");
+    _register_benchmark(_buffer_size, 0, name);
+    if (_verbosity != VERBOSITY::OFF) {
+      fmt::print(fg(fmt::color::azure), "\r    {:20} ", name);
       std::cout << std::flush;
     }
+
+    int num_threads = static_cast<int>(std::thread::hardware_concurrency());
+    size_t size = _array_size<char>(_buffer_size);
+    std::vector<char> data(size);
+    std::fill_n(data.data(), data.size(), 34);
+    size_t seq_partition_size = _buffer_size / num_threads;
+    std::vector<std::thread> threads(num_threads);
+
+    utils::Timer rt_timer;
+    rt_timer.start();
+    auto rt = runtime;
+    while (rt.count() > 0) {
+      int pos = 0;
+      timer.start();
+      for (auto& t : threads) {
+        t = std::thread(read::sequential, data.data() + pos, seq_partition_size);
+        pos += seq_partition_size;
+      }
+      for (auto& t : threads) {
+        if (t.joinable()) {
+          t.join();
+        }
+      }
+      auto bm_time = timer.stop();
+      _add_result(name, bm_time);
+      _print_runtime(_benchmark_result.at(name));
+      _print_gib_per_second(_benchmark_result.at(name));
+      rt -= rt_timer.round();
+    }
   }
-  if (_verbosity != utils::VERBOSITY::OFF) {
+
+  if (_verbosity != VERBOSITY::OFF) {
     std::cout << std::endl;
   }
 }
 
 // _____________________________________________________________________________________________________________________
-void Benchmark::run_write(unsigned int iterations) {
+void Benchmark::run_write(seconds runtime) {
   utils::Timer timer;
 
-  int num_threads = static_cast<int>(std::thread::hardware_concurrency());
-  auto partition_size = S_256_MiB / num_threads;
-
-  // multi thread
-  if (_verbosity != utils::VERBOSITY::OFF) {
-    fmt::print(fg(fmt::color::azure), "    {:20} ", "write");
-    fmt::print(fg(fmt::color::gray), "(0/{})...", iterations);
-    std::cout << std::flush;
-  }
-
-  std::random_device dev;
-
-  for (unsigned i = 0; i < iterations; ++i) {
-    auto* data = new int[S_256_MiB];
-    std::vector<std::thread> threads(num_threads);
-    int pos = 0;
-    auto value = utils::DataGenerator::integer<int>(dev());
-    timer.start();
-    for (auto& t : threads) {
-      t = std::thread(write::sequential, data + pos, partition_size, value);
-      pos += partition_size;
-    }
-    for (auto& t : threads) {
-      if (t.joinable()) {
-        t.join();
-      }
-    }
-    auto runtime = timer.stop();
-    _add_result("write", runtime);
-
-    if (data[0] != data[partition_size + 1]) {
-      std::cerr << "RAM Benchmarks failed. This line of code should never be reached and only exists to avoid the "
-                   "compiler from optimizing things away...";
-    }
-
-    if (_verbosity != utils::VERBOSITY::OFF) {
-      fmt::print("\r                                                             ");
-      if (_benchmark_result.contains("write")) {
-        auto& results = _benchmark_result["write"];
-        fmt::print(fg(fmt::color::azure), "\r    {:20} ", "write");
-        fmt::print(fg(fmt::color::gray), "({}/{}): ", i + 1, iterations);
-        fmt::print(fg(fmt::color::green), "({:.3f} +/- {:.3f}) s ", utils::mean(results), utils::stdev(results));
-        fmt::print(fg(fmt::color::blue_violet), "[{:.2f} GiB/s]",
-                   static_cast<double>(sizeof(int)) / 4.0f / utils::min(results));
-      }
+  {  // write
+    std::string name("write");
+    _register_benchmark(_buffer_size, 0, name);
+    if (_verbosity != VERBOSITY::OFF) {
+      fmt::print(fg(fmt::color::azure), "    {:20} ", name);
       std::cout << std::flush;
     }
-    delete[] data;
+
+    size_t size = _array_size<int>(_buffer_size);
+    int num_threads = static_cast<int>(std::thread::hardware_concurrency());
+    auto partition_size = size / num_threads;
+    std::vector<std::thread> threads(num_threads);
+
+    utils::Timer rt_timer;
+    rt_timer.start();
+    auto rt = runtime;
+    while (rt.count() > 0) {
+      SmartBuffer<int> data(size);
+      int pos = 0;
+      timer.start();
+      for (auto& t : threads) {
+        t = std::thread(write::sequential, data.data + pos, partition_size, 5);
+        pos += partition_size;
+      }
+      for (auto& t : threads) {
+        if (t.joinable()) {
+          t.join();
+        }
+      }
+      auto bm_time = timer.stop();
+      _add_result(name, bm_time);
+
+      // This statement will always be true and prevents the compiler from optimizing things away that are needed
+      if (data.data[0] != data.data[partition_size + 1]) {
+        std::cerr << "RAM Benchmarks failed. This line of code should never be reached and only exists to avoid the "
+                     "compiler from optimizing things away...";
+      }
+
+      _print_runtime(_benchmark_result.at(name));
+      _print_gib_per_second(_benchmark_result.at(name));
+      rt -= rt_timer.round();
+    }
   }
-  if (_verbosity != utils::VERBOSITY::OFF) {
+
+  if (_verbosity != VERBOSITY::OFF) {
     std::cout << std::endl;
   }
 }
 
 // _____________________________________________________________________________________________________________________
-void Benchmark::run_read_write(unsigned int iterations) {
+void Benchmark::run_read_write(seconds runtime) {
   utils::Timer timer;
 
-  int num_threads = static_cast<int>(std::thread::hardware_concurrency());
-  auto partition_size = S_256_MiB / num_threads;
-
-  // multi thread
-  if (_verbosity != utils::VERBOSITY::OFF) {
-    fmt::print(fg(fmt::color::azure), "    {:20} ", "read/write");
-    fmt::print(fg(fmt::color::gray), "(0/{})...", iterations);
-    std::cout << std::flush;
-  }
-
-  auto* data = new int[S_256_MiB];
-  std::random_device dev;
-
-  for (unsigned i = 0; i < iterations; ++i) {
-    auto dst = new int[S_256_MiB];
-    std::memset(data, utils::DataGenerator::integer<int>(dev()), S_256_MiB);
-    std::vector<std::thread> threads(num_threads);
-    int pos = 0;
-    timer.start();
-    for (auto& t : threads) {
-      t = std::thread(read_write::sequential, data + pos, dst + pos, partition_size);
-      pos += partition_size;
-    }
-    for (auto& t : threads) {
-      if (t.joinable()) {
-        t.join();
-      }
-    }
-    auto runtime = timer.stop();
-    _add_result("read/write", runtime);
-
-    if (data[partition_size] != dst[partition_size]) {
-      std::cerr << "RAM Benchmarks failed. This line of code should never be reached and only exists to avoid the "
-                   "compiler from optimizing things away...";
-    }
-
-    if (_verbosity != utils::VERBOSITY::OFF) {
-      fmt::print("\r                                                             ");
-      if (_benchmark_result.contains("read/write")) {
-        auto& results = _benchmark_result["read/write"];
-        fmt::print(fg(fmt::color::azure), "\r    {:20} ", "read/write");
-        fmt::print(fg(fmt::color::gray), "({}/{}): ", i + 1, iterations);
-        fmt::print(fg(fmt::color::green), "({:.3f} +/- {:.3f}) s ", utils::mean(results), utils::stdev(results));
-        fmt::print(fg(fmt::color::blue_violet), "[{:.2f} GiB/s]",
-                   static_cast<double>(sizeof(int)) / 4.0f / utils::min(results));
-      }
+  {  // multi thread
+    std::string name("read/write");
+    _register_benchmark(_buffer_size, 0, name);
+    if (_verbosity != VERBOSITY::OFF) {
+      fmt::print(fg(fmt::color::azure), "    {:20} ", name);
       std::cout << std::flush;
     }
-    delete[] dst;
+
+    size_t size = _array_size<int>(_buffer_size);
+    int num_threads = static_cast<int>(std::thread::hardware_concurrency());
+    auto partition_size = size / num_threads;
+    SmartBuffer<int> data(size);
+    std::vector<std::thread> threads(num_threads);
+
+    utils::Timer rt_timer;
+    rt_timer.start();
+    auto rt = runtime;
+    while (rt.count() > 0) {
+      SmartBuffer<int> dst(size);
+      std::memset(data.data, 4, size);
+      int pos = 0;
+      timer.start();
+      for (auto& t : threads) {
+        t = std::thread(read_write::sequential, data.data + pos, dst.data + pos, partition_size);
+        pos += partition_size;
+      }
+      for (auto& t : threads) {
+        if (t.joinable()) {
+          t.join();
+        }
+      }
+      auto bm_time = timer.stop();
+      _add_result(name, bm_time);
+
+      if (data.data[partition_size] != dst.data[partition_size]) {
+        std::cerr << "RAM Benchmarks failed. This line of code should never be reached and only exists to avoid the "
+                     "compiler from optimizing things away...";
+      }
+
+      _print_runtime(_benchmark_result.at(name));
+      _print_gib_per_second(_benchmark_result.at(name));
+      rt -= rt_timer.round();
+    }
   }
-  if (_verbosity != utils::VERBOSITY::OFF) {
+
+  if (_verbosity != VERBOSITY::OFF) {
     std::cout << std::endl;
   }
-  delete[] data;
 }
 
 }  // namespace taskbench::ram
