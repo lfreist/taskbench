@@ -6,9 +6,7 @@
  */
 
 #include <AES.h>
-#include <fmt/color.h>
 #include <taskbench/tasks/cpu/aes.h>
-#include <taskbench/utils/data_generator.h>
 
 namespace taskbench::cpu::aes {
 

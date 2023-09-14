@@ -16,5 +16,8 @@ int main(int argc, char** argv) {
   ram_benchmark.run_all(taskbench::seconds(3));
   cpu_benchmark.run_all(taskbench::seconds(3));
   gpu_benchmark.run_all(taskbench::seconds(3));
+
+  std::cout << "\nPress 'Enter' to exit ";
+  std::cin.get();
   return 0;
 }

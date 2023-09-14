@@ -6,6 +6,7 @@
  */
 
 #include <fmt/color.h>
+
 #include <taskbench/tasks/ram/benchmark.h>
 #include <taskbench/tasks/ram/read.h>
 #include <taskbench/tasks/ram/read_write.h>
@@ -19,9 +20,8 @@ namespace taskbench::ram {
 
 template <typename T>
 struct SmartBuffer {
-  SmartBuffer(size_t s) {
-    data = new T[s];
-    size = s;
+  explicit SmartBuffer(size_t s) : size(s) {
+    data = new T[size];
   }
   ~SmartBuffer() { delete[] data; }
   void resize(size_t s) {
@@ -50,9 +50,9 @@ void Benchmark::run_read(seconds runtime) {
 
   {  // read
     std::string name("read");
-    _register_benchmark(_buffer_size, 0, name);
+    _register_benchmark(static_cast<size_t>(_buffer_size), 0, name);
     if (_verbosity != VERBOSITY::OFF) {
-      fmt::print(fg(fmt::color::azure), "\r    {:20} ", name);
+      fmt::print(fg(fmt::color::azure), "\r    {:20}", name);
       std::cout << std::flush;
     }
 
@@ -60,7 +60,7 @@ void Benchmark::run_read(seconds runtime) {
     size_t size = _array_size<char>(_buffer_size);
     std::vector<char> data(size);
     std::fill_n(data.data(), data.size(), 34);
-    size_t seq_partition_size = _buffer_size / num_threads;
+    auto seq_partition_size = static_cast<size_t>(_buffer_size / num_threads);
     std::vector<std::thread> threads(num_threads);
 
     utils::Timer rt_timer;
@@ -99,7 +99,7 @@ void Benchmark::run_write(seconds runtime) {
     std::string name("write");
     _register_benchmark(_buffer_size, 0, name);
     if (_verbosity != VERBOSITY::OFF) {
-      fmt::print(fg(fmt::color::azure), "    {:20} ", name);
+      fmt::print(fg(fmt::color::azure), "    {:20}", name);
       std::cout << std::flush;
     }
 

@@ -23,7 +23,7 @@ template <typename T>
   requires IsInteger<T> || IsFloatingPoint<T>
 std::string pretty_ops(T val) {
   if (val < 1000) {
-    return fmt::format("{:.2f} op/s", val);
+    return fmt::format("{:.2f} op/s", static_cast<double>(val));
   }
   if (val < 1000000) {
     return fmt::format("{:.2f} K op/s", static_cast<double>(val) / 1000.0f);

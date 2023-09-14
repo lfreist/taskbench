@@ -17,7 +17,7 @@ namespace taskbench::cpu::synthetic {
 
 template <typename T>
   requires utils::IsInteger<T> || utils::IsFloatingPoint<T>
-T add_sub(size_t num_operations_div_100, T v0, T v1, T v2, T v3, T v4, T v5, T v6, T v7, T v8, T v9) {
+T add_sub(uint64_t num_operations_div_100, T v0, T v1, T v2, T v3, T v4, T v5, T v6, T v7, T v8, T v9) {
   volatile T r0 = static_cast<T>(0);
   volatile T r1 = static_cast<T>(0);
   volatile T r2 = static_cast<T>(0);
@@ -28,7 +28,7 @@ T add_sub(size_t num_operations_div_100, T v0, T v1, T v2, T v3, T v4, T v5, T v
   volatile T r7 = static_cast<T>(0);
   volatile T r8 = static_cast<T>(0);
   volatile T r9 = static_cast<T>(0);
-  for (size_t i = 0; i < num_operations_div_100; ++i) {
+  for (uint64_t i = 0; i < num_operations_div_100; ++i) {
     r0 += v0;
     r1 -= v1;
     r2 += v2;
@@ -144,14 +144,14 @@ T add_sub(size_t num_operations_div_100, T v0, T v1, T v2, T v3, T v4, T v5, T v
 
 template <typename T>
   requires utils::IsInteger<T> || utils::IsFloatingPoint<T>
-void mul(size_t num_operations_div_100, T v0, T v1, T v2, T v3, T v4, T v5, T v6, T v7, T v8, T v9, T threshold) {
+void mul(uint64_t num_operations_div_100, T v0, T v1, T v2, T v3, T v4, T v5, T v6, T v7, T v8, T v9, T threshold) {
   volatile T r0 = static_cast<T>(1);
   volatile T r1 = static_cast<T>(1);
   volatile T r2 = static_cast<T>(1);
   volatile T r3 = static_cast<T>(1);
   volatile T r4 = static_cast<T>(1);
 
-  for (size_t i = 0; i < num_operations_div_100; ++i) {
+  for (uint64_t i = 0; i < num_operations_div_100; ++i) {
     if (r0 > threshold) {
       r0 = 1;
     }
@@ -282,7 +282,7 @@ void mul(size_t num_operations_div_100, T v0, T v1, T v2, T v3, T v4, T v5, T v6
 
 template <typename T>
   requires utils::IsInteger<T> || utils::IsFloatingPoint<T>
-void div(size_t num_operations_div_100, T v0, T v1, T v2, T v3, T v4, T v5, T v6, T v7, T v8, T v9) {
+void div(uint64_t num_operations_div_100, T v0, T v1, T v2, T v3, T v4, T v5, T v6, T v7, T v8, T v9) {
   T max = std::numeric_limits<T>::max();
   volatile T r0 = max;
   volatile T r1 = max;
@@ -290,7 +290,7 @@ void div(size_t num_operations_div_100, T v0, T v1, T v2, T v3, T v4, T v5, T v6
   volatile T r3 = max;
   volatile T r4 = max;
 
-  for (size_t i = 0; i < num_operations_div_100; ++i) {
+  for (uint64_t i = 0; i < num_operations_div_100; ++i) {
     if (r0 < 0) {
       r0 = max;
     }

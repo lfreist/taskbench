@@ -6,12 +6,12 @@
  */
 
 #include <fmt/color.h>
+
 #include <missocl/opencl.h>
 #include <taskbench/tasks/gpu/benchmark.h>
 #include <taskbench/tasks/gpu/memory.h>
 #include <taskbench/tasks/gpu/mmul.h>
 #include <taskbench/tasks/gpu/synthetic.h>
-#include <taskbench/utils/format.h>
 #include <taskbench/utils/statistics.h>
 
 #include <thread>
@@ -41,9 +41,9 @@ void Benchmark::run_mmul(seconds runtime) {
 
   {  // GPU matrix multiplication
     std::string name("mmul");
-    _register_benchmark(2048 * 2048, 2 * (static_cast<size_t>(2048 * 2048) * 2048) - (2048 * 2048), name);
+    _register_benchmark(0, 2 * (static_cast<size_t>(2048 * 2048) * 2048) - (2048 * 2048), name);
     if (_verbosity != VERBOSITY::OFF) {
-      fmt::print(fg(fmt::color::azure), "\r    {:20} ", name);
+      fmt::print(fg(fmt::color::azure), "\r    {:20}", name);
       std::cout << std::flush;
     }
 
@@ -221,12 +221,12 @@ void Benchmark::run_synthetic(seconds runtime) {
       std::cout << std::flush;
     }
 
-    size_t size = S_1_GiB / sizeof(int);
+    size_t size = _array_size<int>(_buffer_size);
     std::vector<int> data(size);
     std::fill_n(data.data(), data.size(), 4);
     auto setup = synthetic::create_mcl_setup<int>(data);
 
-    _register_benchmark(0, 2048 * size, name);
+    _register_benchmark(0, static_cast<uint64_t>(2048ull * size), name);
 
     utils::Timer rt_timer;
     rt_timer.start();
@@ -250,12 +250,12 @@ void Benchmark::run_synthetic(seconds runtime) {
       std::cout << std::flush;
     }
 
-    size_t size = S_1_GiB / sizeof(float);
+    size_t size = _array_size<float>(_buffer_size);
     std::vector<float> data(size);
     std::fill_n(data.data(), data.size(), 4.465f);
     auto setup = synthetic::create_mcl_setup(data);
 
-    _register_benchmark(0, 2048 * size, name);
+    _register_benchmark(0, static_cast<uint64_t>(2048ull * size), name);
 
     utils::Timer rt_timer;
     rt_timer.start();

@@ -6,9 +6,9 @@
  */
 
 #include <fmt/color.h>
+
 #include <taskbench/tasks/cpu/benchmark.h>
 #include <taskbench/utils/data_generator.h>
-#include <taskbench/utils/format.h>
 #include <taskbench/utils/statistics.h>
 
 namespace taskbench::cpu {
@@ -244,7 +244,7 @@ void Benchmark::run_mmul(seconds runtime) {
   std::vector<std::vector<double>> fp_mat1(matrix_size);
   std::vector<std::vector<double>> fp_mat2(matrix_size);
   std::vector<std::vector<double>> fp_result(matrix_size);
-  for (int i = 0; i < matrix_size; ++i) {
+  for (size_t i = 0; i < matrix_size; ++i) {
     int_mat1[i] = utils::DataGenerator::vector<int>(matrix_size, i);
     int_mat2[i] = utils::DataGenerator::vector<int>(matrix_size, 2000 - i);
     int_result[i] = std::vector<int>(matrix_size);
@@ -516,7 +516,7 @@ void Benchmark::run_synthetic(seconds runtime) {
   }
 
   {  // div (int)
-    std::string name("div (int)");
+    std::string name("div (double)");
     _register_benchmark(0, _num_ops_div, name);
     if (_verbosity != VERBOSITY::OFF) {
       fmt::print(fg(fmt::color::azure), "\n    {:20}", name);

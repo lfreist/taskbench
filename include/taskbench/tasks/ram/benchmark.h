@@ -32,7 +32,7 @@ class Benchmark : public AbstractBenchmark {
   void run_read_write(seconds runtime);
 
  private:
-  size_t _buffer_size = S_1_GiB;
+  uint64_t _buffer_size = S_512_MiB;
 };
 
 }  // namespace taskbench::ram

@@ -36,8 +36,8 @@ class Benchmark : public AbstractBenchmark {
   void run_synthetic(seconds runtime);
 
  private:
-  size_t _num_ops {4000000000};
-  size_t _num_ops_div {400000000};
+  uint64_t _num_ops {4000000000};
+  uint64_t _num_ops_div {400000000};
 };
 
 }

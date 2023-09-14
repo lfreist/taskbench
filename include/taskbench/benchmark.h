@@ -7,15 +7,14 @@
 
 #pragma once
 
-#include <chrono>
-#include <string>
-#include <map>
-#include <vector>
-#include <iostream>
-
 #include <taskbench/utils/timer.h>
 
+#include <chrono>
+#include <iostream>
+#include <map>
 #include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
 
 #define S_1_MiB 0x100000
 #define S_2_MiB 0x200000
@@ -38,46 +37,40 @@ typedef std::chrono::duration<double> seconds;
 
 class BenchmarkResult {
  public:
-  BenchmarkResult(std::string name, size_t data_size, size_t num_operations);
+  BenchmarkResult(std::string name, uint64_t data_size, uint64_t num_operations);
 
-  double runtime_mean() const;
-  double runtime_stdev() const;
-  double runtime_max() const;
-  double runtime_min() const;
+  [[nodiscard]] double runtime_mean() const;
+  [[nodiscard]] double runtime_stdev() const;
+  [[nodiscard]] double runtime_max() const;
+  [[nodiscard]] double runtime_min() const;
 
-  double ops_mean() const;
-  double ops_stdev() const;
-  double ops_max() const;
-  double ops_min() const;
+  [[nodiscard]] double ops_mean() const;
+  [[nodiscard]] double ops_stdev() const;
+  [[nodiscard]] double ops_max() const;
+  [[nodiscard]] double ops_min() const;
 
-  double bps_mean() const;
-  double bps_stdev() const;
-  double bps_max() const;
-  double bps_min() const;
+  [[nodiscard]] double bps_mean() const;
+  [[nodiscard]] double bps_stdev() const;
+  [[nodiscard]] double bps_max() const;
+  [[nodiscard]] double bps_min() const;
 
-  const std::vector<seconds>& runtimes() const;
+  [[nodiscard]] const std::vector<seconds>& runtimes() const;
   void add_runtime(seconds runtime);
 
   nlohmann::json json();
 
-  const std::string& name() const;
+  [[nodiscard]] const std::string& name() const;
 
-  size_t data_size() const;
+  [[nodiscard]] uint64_t data_size() const;
 
  private:
   std::string _name;
   std::vector<seconds> _runtimes;
-  size_t _data_size;
-  size_t _num_operations;
+  uint64_t _data_size;
+  uint64_t _num_operations;
 };
 
-
-enum class VERBOSITY {
-  OFF,
-  MEDIUM,
-  DETAILED,
-  HIGH
-};
+enum class VERBOSITY { OFF, MEDIUM, DETAILED, HIGH };
 
 /**
  * @brief Abstract Benchmark class implemented for each task set (cpu, gpu, ram, ...)
@@ -108,11 +101,11 @@ class AbstractBenchmark {
 
  protected:
   template <typename T>
-  static size_t _array_size(size_t buffer_size) {
-    return buffer_size / sizeof(T);
+  static size_t _array_size(uint64_t buffer_size) {
+    return static_cast<size_t>(buffer_size / sizeof(T));
   }
 
-  void _register_benchmark(size_t data_size, size_t num_operations, const std::string& name);
+  void _register_benchmark(uint64_t data_size, uint64_t num_operations, const std::string& name);
 
   void _add_result(const std::string& key, seconds val);
 
@@ -124,6 +117,5 @@ class AbstractBenchmark {
 
   VERBOSITY _verbosity = VERBOSITY::DETAILED;
 };
-
 
 }  // namespace taskbench
