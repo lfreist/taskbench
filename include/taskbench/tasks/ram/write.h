@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <cstdint>
+#include <cstddef>
 
 namespace taskbench::ram::write {
 
