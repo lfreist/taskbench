@@ -6,7 +6,6 @@
  */
 
 #include <fmt/color.h>
-
 #include <taskbench/tasks/cpu/benchmark.h>
 #include <taskbench/utils/data_generator.h>
 #include <taskbench/utils/statistics.h>
@@ -278,7 +277,8 @@ void Benchmark::run_mmul(seconds runtime) {
 
   {  // Matrix multiplication (double)
     std::string name("mmul (double)");
-    _register_benchmark(1024 * 1024 * sizeof(double), 2 * static_cast<size_t>(1024 * 1024 * 1024) - (1024 * 1024), name);
+    _register_benchmark(1024 * 1024 * sizeof(double), 2 * static_cast<size_t>(1024 * 1024 * 1024) - (1024 * 1024),
+                        name);
     if (_verbosity != VERBOSITY::OFF) {
       fmt::print(fg(fmt::color::azure), "\n    {:20}", name);
       std::cout << std::flush;

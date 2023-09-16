@@ -7,8 +7,8 @@
 
 #include <taskbench/tasks/ram/read.h>
 
-#include <iostream>
 #include <cstring>
+#include <iostream>
 
 namespace taskbench::ram::read {
 

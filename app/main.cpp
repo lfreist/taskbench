@@ -5,9 +5,7 @@
  * This file is part of taskbench.
  */
 
-#include <taskbench/tasks/cpu/benchmark.h>
-#include <taskbench/tasks/gpu/benchmark.h>
-#include <taskbench/tasks/ram/benchmark.h>
+#include <taskbench/taskbench.h>
 
 int main(int argc, char** argv) {
   taskbench::cpu::Benchmark cpu_benchmark;

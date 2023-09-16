@@ -35,7 +35,7 @@ void matrix_multiply(std::vector<float>& mat1, std::vector<float>& mat2, std::ve
 
   kernel.set_parameters<mcl::Memory<2, float>>(A, B, C);  // pointer arguments
   kernel.set_args(static_cast<int>(size), static_cast<int>(size), static_cast<int>(size),
-                  static_cast<int>(size));                // integer arguments
+                  static_cast<int>(size));  // integer arguments
   A.write_to_device();
   B.write_to_device();
 

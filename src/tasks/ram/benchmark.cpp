@@ -6,7 +6,6 @@
  */
 
 #include <fmt/color.h>
-
 #include <taskbench/tasks/ram/benchmark.h>
 #include <taskbench/tasks/ram/read.h>
 #include <taskbench/tasks/ram/read_write.h>
@@ -20,9 +19,7 @@ namespace taskbench::ram {
 
 template <typename T>
 struct SmartBuffer {
-  explicit SmartBuffer(size_t s) : size(s) {
-    data = new T[size];
-  }
+  explicit SmartBuffer(size_t s) : size(s) { data = new T[size]; }
   ~SmartBuffer() { delete[] data; }
   void resize(size_t s) {
     delete[] data;

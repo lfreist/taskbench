@@ -279,7 +279,6 @@ void mul(uint64_t num_operations_div_100, T v0, T v1, T v2, T v3, T v4, T v5, T 
   }
 }
 
-
 template <typename T>
   requires utils::IsInteger<T> || utils::IsFloatingPoint<T>
 void div(uint64_t num_operations_div_100, T v0, T v1, T v2, T v3, T v4, T v5, T v6, T v7, T v8, T v9) {

@@ -37,15 +37,16 @@ std::string get_fp_ops_kernel() {
   return ops_fp_kernel;
 }
 
-template<>
+template <>
 mclSetup<int> create_mcl_setup(std::vector<int>& data) {
   mclSetup<int> setup(data);
-  setup.kernel = std::make_unique<mcl::Kernel>(setup.env.add_kernel(data.size(), "ops_int_kernel", get_int_ops_kernel()));
+  setup.kernel =
+      std::make_unique<mcl::Kernel>(setup.env.add_kernel(data.size(), "ops_int_kernel", get_int_ops_kernel()));
   setup.kernel->set_parameters(setup.buffer);
   return setup;
 }
 
-template<>
+template <>
 mclSetup<float> create_mcl_setup(std::vector<float>& data) {
   mclSetup<float> setup(data);
   setup.kernel = std::make_unique<mcl::Kernel>(setup.env.add_kernel(data.size(), "ops_fp_kernel", get_fp_ops_kernel()));
@@ -53,4 +54,4 @@ mclSetup<float> create_mcl_setup(std::vector<float>& data) {
   return setup;
 }
 
-}
+}  // namespace taskbench::gpu::synthetic

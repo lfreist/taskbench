@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include <valarray>
 #include <complex>
+#include <valarray>
 
 #define M_PI 3.14159265358979323846
 
@@ -21,11 +21,11 @@ namespace taskbench::cpu::fft {
  */
 void fft(std::valarray<std::complex<double>>& data);
 
-    /**
+/**
  * @brief Inverse Fast Fourier Transformation
  * @param src
  * @param dst
  */
 void ifft(std::valarray<std::complex<double>>& data);
 
-}
+}  // namespace taskbench::cpu::fft

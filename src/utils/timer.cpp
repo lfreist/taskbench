@@ -10,9 +10,7 @@
 namespace taskbench::utils {
 
 // _____________________________________________________________________________________________________________________
-void Timer::start() noexcept {
-  _start = clock::now();
-}
+void Timer::start() noexcept { _start = clock::now(); }
 
 // _____________________________________________________________________________________________________________________
 std::chrono::duration<double> Timer::stop() noexcept {
@@ -21,9 +19,7 @@ std::chrono::duration<double> Timer::stop() noexcept {
 }
 
 // _____________________________________________________________________________________________________________________
-std::chrono::duration<double> Timer::count() noexcept {
-  return clock::now() - _start;
-}
+std::chrono::duration<double> Timer::count() noexcept { return clock::now() - _start; }
 
 // _____________________________________________________________________________________________________________________
 std::chrono::duration<double> Timer::round() noexcept {
@@ -33,4 +29,4 @@ std::chrono::duration<double> Timer::round() noexcept {
   return c;
 }
 
-}
+}  // namespace taskbench::utils

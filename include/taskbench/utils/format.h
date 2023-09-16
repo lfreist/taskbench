@@ -7,9 +7,8 @@
 
 #pragma once
 
-#include <taskbench/utils/concepts.h>
-
 #include <fmt/core.h>
+#include <taskbench/utils/concepts.h>
 
 namespace taskbench::utils {
 
@@ -37,4 +36,4 @@ std::string pretty_ops(T val) {
   return fmt::format("{:.2f} T op/s", static_cast<double>(val) / 1000000000000.0f);
 }
 
-}
+}  // namespace taskbench::utils

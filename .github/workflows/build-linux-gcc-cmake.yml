@@ -29,6 +29,5 @@ jobs:
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
     - name: Run Example
-      working-directory: ${{github.workspace}}/build
-      run: ctest --verbose
-      
+      working-directory: ${{github.workspace}}/build/taskbench
+      run: taskbench

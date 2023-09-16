@@ -6,7 +6,6 @@
  */
 
 #include <fmt/color.h>
-
 #include <missocl/opencl.h>
 #include <taskbench/tasks/gpu/benchmark.h>
 #include <taskbench/tasks/gpu/memory.h>

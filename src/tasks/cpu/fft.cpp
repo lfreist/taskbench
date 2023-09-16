@@ -34,4 +34,4 @@ void ifft(std::valarray<std::complex<double>>& data) {
   data = data.apply(std::conj) / data.size();
 }
 
-}
+}  // namespace taskbench::cpu::fft

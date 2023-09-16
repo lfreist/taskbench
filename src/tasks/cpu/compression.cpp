@@ -5,10 +5,9 @@
  * This file is part of taskbench.
  */
 
-#include <zstd.h>
-
 #include <taskbench/tasks/cpu/compression.h>
 #include <taskbench/utils/data_generator.h>
+#include <zstd.h>
 
 namespace taskbench::cpu::compression {
 
@@ -23,4 +22,4 @@ void decompress(const std::vector<char>& src, std::vector<char>& dst) {
   ZSTD_decompress((void*)dst.data(), dst.size(), src.data(), src.size());
 }
 
-}
+}  // namespace taskbench::cpu::compression

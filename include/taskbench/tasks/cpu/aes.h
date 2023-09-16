@@ -27,4 +27,4 @@ std::vector<unsigned char> encrypt(const std::vector<unsigned char>& data, const
  */
 std::vector<unsigned char> decrypt(const std::vector<unsigned char>& data, const std::vector<unsigned char>& key);
 
-}
+}  // namespace taskbench::cpu::aes

@@ -7,15 +7,14 @@
 
 #pragma once
 
+#include <missocl/opencl.h>
+#include <taskbench/benchmark.h>
 #include <taskbench/tasks/cpu/aes.h>
 #include <taskbench/tasks/cpu/compression.h>
 #include <taskbench/tasks/cpu/fft.h>
 #include <taskbench/tasks/cpu/mmul.h>
 #include <taskbench/tasks/cpu/sort.h>
 #include <taskbench/tasks/cpu/synthetic.h>
-#include <taskbench/benchmark.h>
-
-#include <missocl/opencl.h>
 
 #include <map>
 #include <string>
@@ -35,7 +34,7 @@ class Benchmark : public AbstractBenchmark {
   void run_synthetic(seconds runtime);
 
  private:
-  uint64_t _buffer_size {S_512_MiB};
+  uint64_t _buffer_size{S_512_MiB};
 };
 
 }  // namespace taskbench::gpu

@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include <taskbench/utils/concepts.h>
 #include <taskbench/tasks/gpu/synthetic.h>
+#include <taskbench/utils/concepts.h>
 
 #include <vector>
 
@@ -21,4 +21,4 @@ mclSetup<float> setup_memory_read(std::vector<float>& data);
 mclSetup<float> setup_memory_write(std::vector<float>& data);
 mclSetup<float> setup_memory(std::vector<float>& data);
 
-}
+}  // namespace taskbench::gpu::memory

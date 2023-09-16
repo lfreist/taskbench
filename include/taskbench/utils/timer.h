@@ -16,6 +16,7 @@ namespace taskbench::utils {
  */
 class Timer {
   typedef std::chrono::high_resolution_clock clock;
+
  public:
   Timer() = default;
 

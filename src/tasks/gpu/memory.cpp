@@ -5,9 +5,8 @@
  * This file is part of taskbench.
  */
 
-#include <taskbench/tasks/gpu/memory.h>
-
 #include <missocl/opencl.h>
+#include <taskbench/tasks/gpu/memory.h>
 
 namespace taskbench::gpu::memory {
 
@@ -51,8 +50,6 @@ mclSetup<float> setup_memory_write(std::vector<float>& data) {
   return setup;
 }
 
-mclSetup<float> setup_memory(std::vector<float>& data) {
-  return mclSetup<float>(data);
-}
+mclSetup<float> setup_memory(std::vector<float>& data) { return mclSetup<float>(data); }
 
-}
+}  // namespace taskbench::gpu::memory

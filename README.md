@@ -1,16 +1,107 @@
+![c++20](https://github.com/lfreist/taskbench/.images/badges/c++20.svg)
+![CMake39](https://github.com/lfreist/taskbench/.images/badges/cmake39.svg)
+
+[![Linux (clang)](https://github.com/lfreist/taskbench/actions/workflows/build-linux-clang-cmake.yml/badge.svg)](https://github.com/lfreist/taskbench/actions/workflows/build-linux-clang-cmake.yml)
+[![Linux (gcc)](https://github.com/lfreist/taskbench/actions/workflows/build-linux-gcc-cmake.yml/badge.svg)](https://github.com/lfreist/taskbench/actions/workflows/build-linux-gcc-cmake.yml)
+
+[![MacOS](https://github.com/lfreist/taskbench/actions/workflows/build-macos-cmake.yml/badge.svg)](https://github.com/lfreist/taskbench/actions/workflows/build-macos-cmake.yml)
+
+[![Windows (Visual Studio)](https://github.com/lfreist/taskbench/actions/workflows/build-win-msvc-cmake.yml/badge.svg)](https://github.com/lfreist/taskbench/actions/workflows/build-win-msvc-cmake.yml)
+[![Windows (Cygwin)](https://github.com/lfreist/taskbench/actions/workflows/build-win-cygwin-cmake.yml/badge.svg)](https://github.com/lfreist/taskbench/actions/workflows/build-win-cygwin-cmake.yml)
+[![Windows (MinGW)](https://github.com/lfreist/taskbench/actions/workflows/build-win-mingw-cmake.yml/badge.svg)](https://github.com/lfreist/taskbench/actions/workflows/build-win-mingw-cmake.yml)
+[![Windows (MSYS2)](https://github.com/lfreist/taskbench/actions/workflows/build-win-msys2-cmake.yml/badge.svg)](https://github.com/lfreist/taskbench/actions/workflows/build-win-msys2-cmake.yml)
+
+[![Thread Sanitizer](https://github.com/lfreist/taskbench/actions/workflows/build-thread-sanitizer.yml/badge.svg)](https://github.com/lfreist/taskbench/actions/workflows/build-thread-sanitizer.yml)
+[![Address Sanitizer](https://github.com/lfreist/taskbench/actions/workflows/build-address-sanitizer.yml/badge.svg)](https://github.com/lfreist/taskbench/actions/workflows/build-address-sanitizer.yml)
+
+[![Code Style](https://github.com/lfreist/taskbench/actions/workflows/format-check.yml/badge.svg)](https://github.com/lfreist/taskbench/actions/workflows/format-check.yml)
+
 # taskbench
+
 A C++ Library implementing different common tasks for benchmarking purposes
 
-## Build & Run
+## Build
 
-### Linux
+Taskbenchs desired build system is CMake. This has several reasons but the most important is the convenience that all
+used external libraries build using CMake. Thus, all dependencies are included into this repository and build together
+with taskbench.
+
+### Requirements
+
+- A C++ compiler supporting C++20 features (including concepts):
+  - g++>=10
+  - clang>=10
+  - msvc>=16.3
+- CMake (Version 3.9)
+- OpenCL (Your GPU drivers already provide OpenCL. Only install OpenCL if you have no external GPU.)
+  - Windows: [OpenCL™ and OpenGL® Compatibility Pack](https://apps.microsoft.com/store/detail/opencl%E2%84%A2-and-opengl%C2%AE-compatibility-pack/9NQPSL29BFFF?hl=en-en&gl=en)
+  - Linux: `ocl-icd-opencl-dev` - Search for your specific distribution and package manage...
+
+### Dependencies
+
+`taskbench` depends on the following libraries:
+
+- [ZStandard](https://github.com/facebook/zstd)
+- [lfreist/AES](https://github.com/lfreist/AES) (fork of [SergeyBel/AES](https://github.com/SergeyBel/AES))
+- [fmtlib](https://github.com/fmtlib/fmt)
+- [json](https://github.com/nlohmann/json)
+- [miss-ocl](https://github.com/lfreist/miss-ocl) (An OpenCL wrapper including the OpenCL headers)
+
+All these dependencies are included into this repository. No need to install anything!
+
+### Build
+
 ```bash
-mkdir build && cd build
-cmake .. && make -j
-./lib/taskbench
+git submodule update --init --recursive
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release
 ```
 
-## Example Output
+This builds all target libraries as *shared* and *static* libraries.
+
+## Include taskbench to your CMake project
+
+1. Add `taskbench` to your project. Choose one of these options:
+   1. Clone it from GitHub into `external/taskbench`: `git clone https://github.com/lfreist/taskbench.git`
+   2. Include it as submodule (preferred): `git submodule add https://github.com/lfreist/taskbench.git external/taskbench`
+2. Add the following to your projects root CMakeLists.txt:
+   ```cmake
+   # Your setup ...
+   include_directories(external/taskbench/include)
+   add_subdirectory(external/taskbench)
+   # ...
+   ```
+3. Include `taskbench` to your source files:
+   ```c++
+   // main.cpp
+   
+   #include <taskbench/taskbench.h>
+   
+   int main(int argc, char** argv) {
+     // run all CPU benchmarks
+     taskbench::cpu::Benchmark cpu_benchmark;
+     cpu_benchmark.run_all(taskbench::seconds(3));
+     return 0;
+   }
+   ```
+4. Link against `taskbench` or `taskbench_static`:
+   ```cmake
+   # ...
+   add_executable(main main.cpp)
+   target_link_libraries(main taskbench::taskbench_static)
+   ```
+
+## Run BenchBlitz
+
+Taskbench provides a command line tool `BenchBlitz` that runs the implemented benchmark tasks and prints out the
+results. `BenchBlitz` is built together with the library as described above.
+
+```bash
+./build/taskbench/BenchBlitz # Linux/MacOS
+.\build\taskbench\BenchBlitz # Windows
+```
+
+### Example Output
 
 ```
 RAM Benchmarks:

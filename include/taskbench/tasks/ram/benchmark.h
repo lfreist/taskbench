@@ -7,13 +7,13 @@
 
 #pragma once
 
+#include <taskbench/benchmark.h>
 #include <taskbench/tasks/cpu/aes.h>
 #include <taskbench/tasks/cpu/compression.h>
 #include <taskbench/tasks/cpu/fft.h>
 #include <taskbench/tasks/cpu/mmul.h>
 #include <taskbench/tasks/cpu/sort.h>
 #include <taskbench/tasks/cpu/synthetic.h>
-#include <taskbench/benchmark.h>
 
 #include <map>
 #include <string>

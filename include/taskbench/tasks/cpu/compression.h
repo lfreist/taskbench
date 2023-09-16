@@ -25,4 +25,4 @@ void compress(const std::vector<char>& src, std::vector<char>& dst);
  */
 void decompress(const std::vector<char>& src, std::vector<char>& dst);
 
-}
+}  // namespace taskbench::cpu::compression

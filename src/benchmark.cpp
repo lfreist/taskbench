@@ -6,10 +6,9 @@
  */
 
 #include <fmt/color.h>
-
 #include <taskbench/benchmark.h>
-#include <taskbench/utils/statistics.h>
 #include <taskbench/utils/format.h>
+#include <taskbench/utils/statistics.h>
 
 namespace taskbench {
 
@@ -27,9 +26,7 @@ double BenchmarkResult::bps_max() const { return static_cast<double>(_data_size)
 double BenchmarkResult::bps_mean() const { return static_cast<double>(_data_size) / utils::mean(_runtimes); }
 
 // _____________________________________________________________________________________________________________________
-double BenchmarkResult::bps_stdev() const {
-  return static_cast<double>(_data_size) / utils::stdev(_runtimes);
-}
+double BenchmarkResult::bps_stdev() const { return static_cast<double>(_data_size) / utils::stdev(_runtimes); }
 
 // _____________________________________________________________________________________________________________________
 double BenchmarkResult::bps_min() const { return static_cast<double>(_data_size) / utils::max(_runtimes); }
@@ -41,9 +38,7 @@ double BenchmarkResult::ops_max() const { return static_cast<double>(_num_operat
 double BenchmarkResult::ops_mean() const { return static_cast<double>(_num_operations) / utils::mean(_runtimes); }
 
 // _____________________________________________________________________________________________________________________
-double BenchmarkResult::ops_stdev() const {
-  return static_cast<double>(_num_operations) / utils::stdev(_runtimes);
-}
+double BenchmarkResult::ops_stdev() const { return static_cast<double>(_num_operations) / utils::stdev(_runtimes); }
 
 // _____________________________________________________________________________________________________________________
 double BenchmarkResult::ops_min() const { return static_cast<double>(_num_operations) / utils::max(_runtimes); }
