@@ -13,6 +13,7 @@
 #include <cmath>
 #include <numeric>
 #include <vector>
+#include <algorithm>
 
 namespace taskbench::utils {
 
