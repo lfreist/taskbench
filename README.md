@@ -1,5 +1,5 @@
-![c++20](https://github.com/lfreist/taskbench/.images/badges/c++20.svg)
-![CMake39](https://github.com/lfreist/taskbench/.images/badges/cmake39.svg)
+![cpp20](https://github.com/lfreist/taskbench/blob/main/.images/badges/cpp20.svg)
+![CMake39](https://github.com/lfreist/taskbench/blob/main/.images/badges/cmake39.svg)
 
 [![Linux (clang)](https://github.com/lfreist/taskbench/actions/workflows/build-linux-clang-cmake.yml/badge.svg)](https://github.com/lfreist/taskbench/actions/workflows/build-linux-clang-cmake.yml)
 [![Linux (gcc)](https://github.com/lfreist/taskbench/actions/workflows/build-linux-gcc-cmake.yml/badge.svg)](https://github.com/lfreist/taskbench/actions/workflows/build-linux-gcc-cmake.yml)
