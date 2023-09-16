@@ -10,7 +10,7 @@
 #include <taskbench/utils/concepts.h>
 
 #include <concepts>
-#include <cstdint>
+#include <cstddef>
 #include <vector>
 
 namespace taskbench::cpu::mmul {
