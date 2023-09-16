@@ -2,7 +2,11 @@ cmake_minimum_required(VERSION 3.9)
 project(taskbench CXX)
 set(CMAKE_CXX_STANDARD 20)
 
+# Windows specific option
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+
+# for building shared objects
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/taskbench)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/taskbench/lib)
