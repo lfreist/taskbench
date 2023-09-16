@@ -17,6 +17,6 @@ jobs:
 
       - name: Run clang-format
         run: |
-          chmod +x ./code_style_check.sh
+          chmod +x ./format_check.sh
           ./format_check.sh
         shell: bash
