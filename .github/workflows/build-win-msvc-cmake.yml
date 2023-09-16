@@ -1,4 +1,4 @@
-name: Windows (Visual Studio)
+name: Windows (MSVC)
 
 on:
   push:
