@@ -9,11 +9,11 @@
 
 #include <taskbench/utils/concepts.h>
 
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <numeric>
 #include <vector>
-#include <algorithm>
 
 namespace taskbench::utils {
 
