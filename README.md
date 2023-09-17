@@ -91,14 +91,14 @@ This builds all target libraries as *shared* and *static* libraries.
    target_link_libraries(main taskbench::taskbench_static)
    ```
 
-## Run BenchBlitz
+## Run BlitzBench
 
-Taskbench provides a command line tool `BenchBlitz` that runs the implemented benchmark tasks and prints out the
-results. `BenchBlitz` is built together with the library as described above.
+Taskbench provides a command line tool `BlitzBench` that runs the implemented benchmark tasks and prints out the
+results. `BlitzBench` is built together with the library as described above.
 
 ```bash
-./build/taskbench/BenchBlitz # Linux/MacOS
-.\build\taskbench\BenchBlitz # Windows
+./build/taskbench/BlitzBench # Linux/MacOS
+.\build\taskbench\BlitzBench # Windows
 ```
 
 ### Example Output

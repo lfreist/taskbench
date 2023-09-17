@@ -1,2 +1,2 @@
 add_executable(BenchBlitz main.cpp)
-target_link_libraries(BenchBlitz PRIVATE taskbench::taskbench_static)
+target_link_libraries(BlitzBench PRIVATE taskbench::taskbench_static)
