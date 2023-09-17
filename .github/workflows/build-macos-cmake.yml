@@ -23,4 +23,4 @@ jobs:
 
       - name: Run Example
         working-directory: ${{github.workspace}}/build/taskbench
-        run: BlitzBench
+        run: ./BlitzBench
