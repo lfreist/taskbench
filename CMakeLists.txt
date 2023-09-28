@@ -26,7 +26,9 @@ include_directories(external/miss-ocl/external/OpenCL/external/OpenCL-CLHPP/incl
 add_subdirectory(external/zstd/build/cmake)
 add_subdirectory(external/AES)
 add_subdirectory(external/fmt EXCLUDE_FROM_ALL)
-add_subdirectory(external/miss-ocl)
+if (NOT TARGET miss-opencl_static)
+    add_subdirectory(external/miss-ocl)
+endif ()
 add_subdirectory(external/json)
 
 add_subdirectory(src)

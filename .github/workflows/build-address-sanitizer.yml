@@ -18,6 +18,9 @@ jobs:
       - name: Setup clang
         uses: egor-tensin/setup-clang@v1
 
+      - name: install dependencies
+        run: sudo apt update && sudo apt install -y ocl-icd-opencl-dev
+
       - name: git submodules
         run: git submodule update --init --recursive
 
