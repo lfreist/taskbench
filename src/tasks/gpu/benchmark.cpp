@@ -39,7 +39,7 @@ void Benchmark::run_mmul(seconds runtime) {
   }
 
   {  // GPU matrix multiplication
-    std::string name("mmul");
+    std::string name("Matrix Multiplication");
     _register_benchmark(0, 2 * (static_cast<size_t>(2048 * 2048) * 2048) - (2048 * 2048), name);
     if (_verbosity != VERBOSITY::OFF) {
       fmt::print(fg(fmt::color::azure), "\r    {:20}", name);
@@ -87,7 +87,7 @@ void Benchmark::run_memory(seconds runtime) {
   std::fill_n(data.data(), data.size(), 0.0f);
 
   {  // GPU memory write
-    std::string name("memory write");
+    std::string name("Memory Write");
     _register_benchmark(_buffer_size, 0, name);
     if (_verbosity != VERBOSITY::OFF) {
       fmt::print(fg(fmt::color::azure), "\r    {:20} ", name);
@@ -111,7 +111,7 @@ void Benchmark::run_memory(seconds runtime) {
   }
 
   {  // GPU memory read
-    std::string name("memory read");
+    std::string name("Memory Read");
     _register_benchmark(_buffer_size, 0, name);
     if (_verbosity != VERBOSITY::OFF) {
       fmt::print(fg(fmt::color::azure), "\n    {:20} ", name);
@@ -153,7 +153,7 @@ void Benchmark::run_transfer_speed(seconds runtime) {
   std::fill_n(data.data(), data.size(), 0.0f);
 
   {  // write data to OpenCL device
-    std::string name("write to device");
+    std::string name("Data Transfer Speed: RAM to GPU");
     _register_benchmark(_buffer_size, 0, name);
     if (_verbosity != VERBOSITY::OFF) {
       fmt::print(fg(fmt::color::azure), "\r    {:20} ", name);
@@ -176,7 +176,7 @@ void Benchmark::run_transfer_speed(seconds runtime) {
   }
 
   {  // read data from OpenCL device
-    std::string name("read from device");
+    std::string name("Data Transfer Speed: GPU to RAM");
     _register_benchmark(_buffer_size, 0, name);
     if (_verbosity != VERBOSITY::OFF) {
       fmt::print(fg(fmt::color::azure), "\n    {:20} ", name);
@@ -214,7 +214,7 @@ void Benchmark::run_synthetic(seconds runtime) {
   }
 
   {  // computing GPU integer ops
-    std::string name("integer ops");
+    std::string name("Synthetic IOPS");
     if (_verbosity != VERBOSITY::OFF) {
       fmt::print(fg(fmt::color::azure), "\r    {:20} ", name);
       std::cout << std::flush;
@@ -243,7 +243,7 @@ void Benchmark::run_synthetic(seconds runtime) {
   }
 
   {  // computing GPU float operations
-    std::string name("float ops");
+    std::string name("Synthetic FLOPS");
     if (_verbosity != VERBOSITY::OFF) {
       fmt::print(fg(fmt::color::azure), "\n    {:20} ", name);
       std::cout << std::flush;

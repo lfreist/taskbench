@@ -46,7 +46,7 @@ void Benchmark::run_read(seconds runtime) {
   utils::Timer timer;
 
   {  // read
-    std::string name("read");
+    std::string name("Read");
     _register_benchmark(static_cast<size_t>(_buffer_size), 0, name);
     if (_verbosity != VERBOSITY::OFF) {
       fmt::print(fg(fmt::color::azure), "\r    {:20}", name);
@@ -93,7 +93,7 @@ void Benchmark::run_write(seconds runtime) {
   utils::Timer timer;
 
   {  // write
-    std::string name("write");
+    std::string name("Write");
     _register_benchmark(_buffer_size, 0, name);
     if (_verbosity != VERBOSITY::OFF) {
       fmt::print(fg(fmt::color::azure), "    {:20}", name);
@@ -146,7 +146,7 @@ void Benchmark::run_read_write(seconds runtime) {
   utils::Timer timer;
 
   {  // multi thread
-    std::string name("read/write");
+    std::string name("Mixed");
     _register_benchmark(_buffer_size, 0, name);
     if (_verbosity != VERBOSITY::OFF) {
       fmt::print(fg(fmt::color::azure), "    {:20} ", name);

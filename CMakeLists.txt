@@ -21,6 +21,7 @@ include_directories(external/fmt/include)
 include_directories(external/miss-ocl/include)
 include_directories(external/json/include)
 include_directories(external/miss-ocl/external/OpenCL/external/OpenCL-CLHPP/include)
+include_directories(external/eigen)
 
 # --- external builds --------------------------------------------------------------------------------------------------
 add_subdirectory(external/zstd/build/cmake)

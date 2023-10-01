@@ -58,6 +58,7 @@ class BenchmarkResult {
   void add_runtime(seconds runtime);
 
   nlohmann::json json();
+  nlohmann::json summary_json();
 
   [[nodiscard]] const std::string& name() const;
 

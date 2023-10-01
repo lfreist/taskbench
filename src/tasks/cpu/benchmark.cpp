@@ -10,7 +10,15 @@
 #include <taskbench/utils/data_generator.h>
 #include <taskbench/utils/statistics.h>
 
+#include <thread>
+
 namespace taskbench::cpu {
+
+struct thread_compression_data {
+  std::thread thread;
+  std::vector<char> plain_data;
+  std::vector<char> compressed_data;
+};
 
 // _____________________________________________________________________________________________________________________
 void Benchmark::run_all(seconds run_time) {
@@ -44,7 +52,7 @@ void Benchmark::run_aes(seconds runtime) {
   encrypted_data.reserve(plain_data.size());
 
   {  // encryption
-    std::string name("AES encryption");
+    std::string name("AES Encryption");
     _register_benchmark(S_16_MiB, 0, name);
     if (_verbosity != VERBOSITY::OFF) {
       fmt::print("\r                                             ");
@@ -66,7 +74,7 @@ void Benchmark::run_aes(seconds runtime) {
   }
 
   {  // decryption
-    std::string name("AES decryption");
+    std::string name("AES Decryption");
     _register_benchmark(S_16_MiB, 0, name);
     if (_verbosity != VERBOSITY::OFF) {
       fmt::print(fg(fmt::color::azure), "\n    {:20} ", name);
@@ -107,8 +115,8 @@ void Benchmark::run_compression(seconds runtime) {
   auto plain_data = utils::DataGenerator::vector<char>(S_512_MiB, 42, 48, 122);
   std::vector<char> compressed_data(plain_data.size());
 
-  {  // encryption
-    std::string name("ZSTD compression");
+  {  // compression
+    std::string name("Compression (ZStandard, 1 thread)");
     _register_benchmark(S_512_MiB, 0, name);
     if (_verbosity != VERBOSITY::OFF) {
       fmt::print("\r                                              ");
@@ -131,7 +139,7 @@ void Benchmark::run_compression(seconds runtime) {
   }
 
   {  // decompression
-    std::string name("ZSTD decompression");
+    std::string name("Decompression (ZStandard, 1 thread)");
     _register_benchmark(S_512_MiB, 0, name);
     if (_verbosity != VERBOSITY::OFF) {
       fmt::print(fg(fmt::color::azure), "\n    {:20}", name);
@@ -144,6 +152,78 @@ void Benchmark::run_compression(seconds runtime) {
     while (rt.count() > 0) {
       timer.start();
       compression::decompress(compressed_data, plain_data);
+      auto bm_time = timer.stop();
+      _add_result(name, bm_time);
+      _print_runtime(_benchmark_result.at(name));
+      rt -= rt_timer.round();
+    }
+  }
+
+  std::vector<thread_compression_data> threads(std::thread::hardware_concurrency());
+  auto per_thread_size = static_cast<ssize_t>(plain_data.size() / threads.size());
+  // add thread specific data
+  ssize_t offset = 0;
+  for (auto& thread : threads) {
+    thread.plain_data.assign(plain_data.begin() + offset, plain_data.begin() + offset + per_thread_size);
+    thread.compressed_data.resize(per_thread_size);
+    offset += per_thread_size;
+  }
+
+  {  // compression multi thread
+    std::string name("Compression (ZStandard)");
+    _register_benchmark(S_512_MiB, 0, name);
+    if (_verbosity != VERBOSITY::OFF) {
+      fmt::print(fg(fmt::color::azure), "\n    {:20}", name);
+      std::cout << std::flush;
+    }
+
+    utils::Timer rt_timer;
+    rt_timer.start();
+    auto rt = runtime;
+    while (rt.count() > 0) {
+      for (auto& thread : threads) {
+        thread.compressed_data.resize(thread.plain_data.size());
+      }
+      timer.start();
+      for (auto& thread : threads) {
+        thread.thread =
+            std::thread(compression::compress, std::ref(thread.plain_data), std::ref(thread.compressed_data));
+      }
+      for (auto& thread : threads) {
+        if (thread.thread.joinable()) {
+          thread.thread.join();
+        }
+      }
+      auto bm_time = timer.stop();
+      _add_result(name, bm_time);
+      compressed_data.resize(plain_data.size());
+      _print_runtime(_benchmark_result.at(name));
+      rt -= rt_timer.round();
+    }
+  }
+
+  {  // decompression multi thread
+    std::string name("Decompression (ZStandard)");
+    _register_benchmark(S_512_MiB, 0, name);
+    if (_verbosity != VERBOSITY::OFF) {
+      fmt::print(fg(fmt::color::azure), "\n    {:20}", name);
+      std::cout << std::flush;
+    }
+
+    utils::Timer rt_timer;
+    rt_timer.start();
+    auto rt = runtime;
+    while (rt.count() > 0) {
+      timer.start();
+      for (auto& thread : threads) {
+        thread.thread =
+            std::thread(compression::decompress, std::ref(thread.compressed_data), std::ref(thread.plain_data));
+      }
+      for (auto& thread : threads) {
+        if (thread.thread.joinable()) {
+          thread.thread.join();
+        }
+      }
       auto bm_time = timer.stop();
       _add_result(name, bm_time);
       _print_runtime(_benchmark_result.at(name));
@@ -175,7 +255,7 @@ void Benchmark::run_fft(seconds runtime) {
   std::transform(plain_data.begin(), plain_data.end(), begin(data), [](auto v) { return v + 1; });
 
   {  // FFT
-    std::string name("FFT");
+    std::string name("Fast Fourier Transformation");
     _register_benchmark(S_2_MiB * sizeof(std::complex<double>), 0, name);
     if (_verbosity != VERBOSITY::OFF) {
       fmt::print("\r                                      ");
@@ -197,7 +277,7 @@ void Benchmark::run_fft(seconds runtime) {
   }
 
   {  // Inverse FFT
-    std::string name("Inverse FFT");
+    std::string name("Inverse Fast Fourier Transformation");
     _register_benchmark(S_2_MiB * sizeof(std::complex<double>), 0, name);
     if (_verbosity != VERBOSITY::OFF) {
       fmt::print(fg(fmt::color::azure), "\n    {:20}", name);
@@ -236,25 +316,14 @@ void Benchmark::run_mmul(seconds runtime) {
     std::cout << std::flush;
   }
 
-  size_t matrix_size = 1024;
-  std::vector<std::vector<int>> int_mat1(matrix_size);
-  std::vector<std::vector<int>> int_mat2(matrix_size);
-  std::vector<std::vector<int>> int_result(matrix_size);
-  std::vector<std::vector<double>> fp_mat1(matrix_size);
-  std::vector<std::vector<double>> fp_mat2(matrix_size);
-  std::vector<std::vector<double>> fp_result(matrix_size);
-  for (size_t i = 0; i < matrix_size; ++i) {
-    int_mat1[i] = utils::DataGenerator::vector<int>(matrix_size, i);
-    int_mat2[i] = utils::DataGenerator::vector<int>(matrix_size, 2000 - i);
-    int_result[i] = std::vector<int>(matrix_size);
-    fp_mat1[i] = utils::DataGenerator::vector<double>(matrix_size, i);
-    fp_mat2[i] = utils::DataGenerator::vector<double>(matrix_size, 2000 - i);
-    fp_result[i] = std::vector<double>(matrix_size);
-  }
+  ssize_t matrix_size = 1024;
+
+  auto matrix_0 = mmul::build_matrix(matrix_size, matrix_size, 42);
+  auto matrix_1 = mmul::build_matrix(matrix_size, matrix_size, 24);
 
   {  // Matrix multiplication (int)
-    std::string name("mmul (int)");
-    _register_benchmark(1024 * 1024 * sizeof(int), 2 * static_cast<size_t>(1024 * 1024 * 1024) - (1024 * 1024), name);
+    std::string name("Matrix Multiplication");
+    _register_benchmark(matrix_size * matrix_size * sizeof(double), -1, name);
     if (_verbosity != VERBOSITY::OFF) {
       fmt::print("\r                                             ");
       fmt::print(fg(fmt::color::azure), "\r    {:20}", name);
@@ -266,34 +335,10 @@ void Benchmark::run_mmul(seconds runtime) {
     auto rt = runtime;
     while (rt.count() > 0) {
       timer.start();
-      mmul::matrix_multiply(int_mat1, int_mat2, int_result);
+      mmul::matrix_multiplication(matrix_0, matrix_1);
       auto bm_time = timer.stop();
       _add_result(name, bm_time);
       _print_runtime(_benchmark_result.at(name));
-      _print_o_per_second(_benchmark_result.at(name));
-      rt -= rt_timer.round();
-    }
-  }
-
-  {  // Matrix multiplication (double)
-    std::string name("mmul (double)");
-    _register_benchmark(1024 * 1024 * sizeof(double), 2 * static_cast<size_t>(1024 * 1024 * 1024) - (1024 * 1024),
-                        name);
-    if (_verbosity != VERBOSITY::OFF) {
-      fmt::print(fg(fmt::color::azure), "\n    {:20}", name);
-      std::cout << std::flush;
-    }
-
-    utils::Timer rt_timer;
-    rt_timer.start();
-    auto rt = runtime;
-    while (rt.count() > 0) {
-      timer.start();
-      mmul::matrix_multiply(fp_mat1, fp_mat2, fp_result);
-      auto bm_time = timer.stop();
-      _add_result(name, bm_time);
-      _print_runtime(_benchmark_result.at(name));
-      _print_o_per_second(_benchmark_result.at(name));
       rt -= rt_timer.round();
     }
   }
@@ -313,7 +358,7 @@ void Benchmark::run_sort(seconds runtime) {
   }
 
   {  // sort int
-    std::string name("sort (int)");
+    std::string name("Sorting Integers");
     _register_benchmark(S_16_MiB * sizeof(int), 0, name);
     if (_verbosity != VERBOSITY::OFF) {
       fmt::print("\r                                              ");
@@ -336,7 +381,7 @@ void Benchmark::run_sort(seconds runtime) {
   }
 
   {  // sort double
-    std::string name("sort (double)");
+    std::string name("Sorting Floating Points");
     _register_benchmark(S_16_MiB * sizeof(double), 0, name);
     if (_verbosity != VERBOSITY::OFF) {
       fmt::print(fg(fmt::color::azure), "\n    {:20}", name);
@@ -358,7 +403,7 @@ void Benchmark::run_sort(seconds runtime) {
   }
 
   {  // sort std::string
-    std::string name("sort (string)");
+    std::string name("Sorting Strings");
     _register_benchmark(S_2_MiB, 0, name);
     if (_verbosity != VERBOSITY::OFF) {
       fmt::print(fg(fmt::color::azure), "\n    {:20}", name);
@@ -400,7 +445,7 @@ void Benchmark::run_synthetic(seconds runtime) {
                       std::accumulate(int_data.begin(), int_data.end(), 1, [](auto a, auto b) { return a * b; });
 
   {  // add/sub (int)
-    std::string name("add/sub (int)");
+    std::string name("Synthetic: IOPS (add/sub)");
     _register_benchmark(0, _num_ops, name);
     if (_verbosity != VERBOSITY::OFF) {
       fmt::print("\r                                             ");
@@ -424,7 +469,7 @@ void Benchmark::run_synthetic(seconds runtime) {
   }
 
   {  // mul (int)
-    std::string name("mul (int)");
+    std::string name("Synthetic: IOPS (mul)");
     _register_benchmark(0, _num_ops, name);
     if (_verbosity != VERBOSITY::OFF) {
       fmt::print(fg(fmt::color::azure), "\n    {:20}", name);
@@ -447,7 +492,7 @@ void Benchmark::run_synthetic(seconds runtime) {
   }
 
   {  // div (int)
-    std::string name("div (int)");
+    std::string name("Synthetic: IOPS (div)");
     _register_benchmark(0, _num_ops_div, name);
     if (_verbosity != VERBOSITY::OFF) {
       fmt::print(fg(fmt::color::azure), "\n    {:20}", name);
@@ -470,7 +515,7 @@ void Benchmark::run_synthetic(seconds runtime) {
   }
 
   {  // add/sub (double)
-    std::string name("add/sub (double)");
+    std::string name("Synthetic: FLOPS (add/sub)");
     _register_benchmark(0, _num_ops, name);
     if (_verbosity != VERBOSITY::OFF) {
       fmt::print(fg(fmt::color::azure), "\n    {:20}", name);
@@ -493,7 +538,7 @@ void Benchmark::run_synthetic(seconds runtime) {
   }
 
   {  // mul (double)
-    std::string name("mul (double)");
+    std::string name("Synthetic: FLOPS (mul)");
     _register_benchmark(0, _num_ops, name);
     if (_verbosity != VERBOSITY::OFF) {
       fmt::print(fg(fmt::color::azure), "\n    {:20}", name);
@@ -516,7 +561,7 @@ void Benchmark::run_synthetic(seconds runtime) {
   }
 
   {  // div (int)
-    std::string name("div (double)");
+    std::string name("Synthetic: FLOPS (div)");
     _register_benchmark(0, _num_ops_div, name);
     if (_verbosity != VERBOSITY::OFF) {
       fmt::print(fg(fmt::color::azure), "\n    {:20}", name);

@@ -7,4 +7,17 @@
 
 #include <taskbench/tasks/cpu/mmul.h>
 
-namespace taskbench::cpu::mmul {}
+#include <random>
+
+namespace taskbench::cpu::mmul {
+
+Eigen::MatrixXd build_matrix(ssize_t m, ssize_t n, int seed) {
+  std::mt19937 rng;
+  rng.seed(seed);
+
+  return Eigen::MatrixXd::Random(m, n);
+}
+
+Eigen::MatrixXd matrix_multiplication(const Eigen::MatrixXd& a, const Eigen::MatrixXd& b) { return a * b; }
+
+}  // namespace taskbench::cpu::mmul
