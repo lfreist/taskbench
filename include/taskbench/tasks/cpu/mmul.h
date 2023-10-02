@@ -13,6 +13,10 @@
 #include <concepts>
 #include <cstddef>
 
+#ifdef _MSC_VER
+#define ssize_t long long
+#endif
+
 namespace taskbench::cpu::mmul {
 
 Eigen::MatrixXd build_matrix(ssize_t m, ssize_t n, int seed);
