@@ -14,7 +14,7 @@
 #include <cstddef>
 
 #ifdef _MSC_VER
-#define ssize_t long long
+using ssize_t = __int64;
 #endif
 
 namespace taskbench::cpu::mmul {
