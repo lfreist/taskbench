@@ -49,7 +49,7 @@ void Benchmark::run_read(seconds runtime) {
     std::string name("Read");
     _register_benchmark(static_cast<size_t>(_buffer_size), 0, name);
     if (_verbosity != VERBOSITY::OFF) {
-      fmt::print(fg(fmt::color::azure), "\r    {:20}", name);
+      fmt::print(fg(fmt::color::azure), "\r    {:40}", name);
       std::cout << std::flush;
     }
 
@@ -96,7 +96,7 @@ void Benchmark::run_write(seconds runtime) {
     std::string name("Write");
     _register_benchmark(_buffer_size, 0, name);
     if (_verbosity != VERBOSITY::OFF) {
-      fmt::print(fg(fmt::color::azure), "    {:20}", name);
+      fmt::print(fg(fmt::color::azure), "    {:40}", name);
       std::cout << std::flush;
     }
 
@@ -149,7 +149,7 @@ void Benchmark::run_read_write(seconds runtime) {
     std::string name("Mixed");
     _register_benchmark(_buffer_size, 0, name);
     if (_verbosity != VERBOSITY::OFF) {
-      fmt::print(fg(fmt::color::azure), "    {:20} ", name);
+      fmt::print(fg(fmt::color::azure), "    {:40} ", name);
       std::cout << std::flush;
     }
 

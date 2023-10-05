@@ -43,7 +43,7 @@ void Benchmark::run_mmul(seconds runtime) {
       std::string name("Matrix Multiplication");
       _register_benchmark(0, 2 * (static_cast<size_t>(2048 * 2048) * 2048) - (2048 * 2048), name);
       if (_verbosity != VERBOSITY::OFF) {
-        fmt::print(fg(fmt::color::azure), "\r    {:20}", name);
+        fmt::print(fg(fmt::color::azure), "\r    {:40}", name);
         std::cout << std::flush;
       }
 
@@ -73,7 +73,7 @@ void Benchmark::run_mmul(seconds runtime) {
       std::cout << std::endl;
     }
   } catch (const mcl::OpenCLError& e) {
-    fmt::print("Could not run {}. Make sure you have OpenCL runtimes installed.", "Matrix Multiplication Benchmarks");
+    fmt::print("Could not run {}. Make sure you have OpenCL runtimes installed ({}).", "Matrix Multiplication Benchmarks", e.what());
   }
 }
 
@@ -95,7 +95,7 @@ void Benchmark::run_memory(seconds runtime) {
       std::string name("Memory Write");
       _register_benchmark(_buffer_size, 0, name);
       if (_verbosity != VERBOSITY::OFF) {
-        fmt::print(fg(fmt::color::azure), "\r    {:20} ", name);
+        fmt::print(fg(fmt::color::azure), "\r    {:40} ", name);
         std::cout << std::flush;
       }
 
@@ -119,7 +119,7 @@ void Benchmark::run_memory(seconds runtime) {
       std::string name("Memory Read");
       _register_benchmark(_buffer_size, 0, name);
       if (_verbosity != VERBOSITY::OFF) {
-        fmt::print(fg(fmt::color::azure), "\n    {:20} ", name);
+        fmt::print(fg(fmt::color::azure), "\n    {:40} ", name);
         std::cout << std::flush;
       }
 
@@ -143,7 +143,7 @@ void Benchmark::run_memory(seconds runtime) {
       std::cout << std::endl;
     }
   } catch (const mcl::OpenCLError& e) {
-    fmt::print("Could not run {}. Make sure you have OpenCL runtimes installed.", "Memory Benchmarks");
+    fmt::print("Could not run {}. Make sure you have OpenCL runtimes installed ({}).", "Memory Benchmarks", e.what());
   }
 }
 
@@ -165,7 +165,7 @@ void Benchmark::run_transfer_speed(seconds runtime) {
       std::string name("Data Transfer Speed: RAM to GPU");
       _register_benchmark(_buffer_size, 0, name);
       if (_verbosity != VERBOSITY::OFF) {
-        fmt::print(fg(fmt::color::azure), "\r    {:20} ", name);
+        fmt::print(fg(fmt::color::azure), "\r    {:40} ", name);
         std::cout << std::flush;
       }
 
@@ -188,7 +188,7 @@ void Benchmark::run_transfer_speed(seconds runtime) {
       std::string name("Data Transfer Speed: GPU to RAM");
       _register_benchmark(_buffer_size, 0, name);
       if (_verbosity != VERBOSITY::OFF) {
-        fmt::print(fg(fmt::color::azure), "\n    {:20} ", name);
+        fmt::print(fg(fmt::color::azure), "\n    {:40} ", name);
         std::cout << std::flush;
       }
 
@@ -212,7 +212,7 @@ void Benchmark::run_transfer_speed(seconds runtime) {
       std::cout << std::endl;
     }
   } catch (const mcl::OpenCLError& e) {
-    fmt::print("Could not run {}. Make sure you have OpenCL runtimes installed.", "Transfer Speed Benchmarks");
+    fmt::print("Could not run {}. Make sure you have OpenCL runtimes installed ({}).", "Transfer Speed Benchmarks", e.what());
   }
 }
 
@@ -229,7 +229,7 @@ void Benchmark::run_synthetic(seconds runtime) {
     {  // computing GPU integer ops
       std::string name("Synthetic IOPS");
       if (_verbosity != VERBOSITY::OFF) {
-        fmt::print(fg(fmt::color::azure), "\r    {:20} ", name);
+        fmt::print(fg(fmt::color::azure), "\r    {:40} ", name);
         std::cout << std::flush;
       }
 
@@ -258,7 +258,7 @@ void Benchmark::run_synthetic(seconds runtime) {
     {  // computing GPU float operations
       std::string name("Synthetic FLOPS");
       if (_verbosity != VERBOSITY::OFF) {
-        fmt::print(fg(fmt::color::azure), "\n    {:20} ", name);
+        fmt::print(fg(fmt::color::azure), "\n    {:40} ", name);
         std::cout << std::flush;
       }
 
@@ -287,7 +287,7 @@ void Benchmark::run_synthetic(seconds runtime) {
       std::cout << std::endl;
     }
   } catch (const mcl::OpenCLError& e) {
-    fmt::print("Could not run {}. Make sure you have OpenCL runtimes installed.", "Synthetic Benchmarks");
+    fmt::print("Could not run {}. Make sure you have OpenCL runtimes installed ({}).", "Synthetic Benchmarks", e.what());
   }
 }
 

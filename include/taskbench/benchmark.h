@@ -88,6 +88,8 @@ class AbstractBenchmark {
    */
   void reset();
 
+  void set_verbosity(VERBOSITY verbosity);
+
   /**
    * @brief Get the collected results as constant reference
    * @return

@@ -34,7 +34,7 @@ class Benchmark : public AbstractBenchmark {
   void run_synthetic(seconds runtime);
 
  private:
-  uint64_t _buffer_size{S_512_MiB};
+  uint64_t _buffer_size{S_256_MiB};
 };
 
 }  // namespace taskbench::gpu

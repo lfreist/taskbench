@@ -82,6 +82,9 @@ uint64_t BenchmarkResult::data_size() const { return _data_size; }
 void AbstractBenchmark::reset() { _benchmark_result.clear(); }
 
 // _____________________________________________________________________________________________________________________
+void AbstractBenchmark::set_verbosity(taskbench::VERBOSITY verbosity) { _verbosity = verbosity; }
+
+// _____________________________________________________________________________________________________________________
 std::map<std::string, BenchmarkResult> AbstractBenchmark::results() { return _benchmark_result; }
 
 // _____________________________________________________________________________________________________________________
@@ -103,7 +106,7 @@ void AbstractBenchmark::_add_result(const std::string& key, seconds value) {
 void AbstractBenchmark::_print_runtime(const taskbench::BenchmarkResult& bm_res) {
   if (_verbosity != VERBOSITY::OFF) {
     fmt::print("\r                                                             ");
-    fmt::print(fg(fmt::color::azure), "\r    {:20} ", bm_res.name());
+    fmt::print(fg(fmt::color::azure), "\r    {:40} ", bm_res.name());
     fmt::print(fg(fmt::color::green), "({:.3f} +/- {:.3f}) s ", bm_res.runtime_mean(), bm_res.runtime_stdev());
     std::cout << std::flush;
   }
